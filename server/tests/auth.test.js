@@ -295,3 +295,68 @@ describe("POST /api/v1/auth/logout", () => {
     });
 
 });
+
+// ---------------------------------------------------------
+// GET /api/v1/auth/me  (Authenticated user details)
+// ---------------------------------------------------------
+
+describe("GET /api/v1/auth/me", () => {
+
+    const createAuthCookie = async () => {
+        const jwt = (await import("jsonwebtoken")).default;
+
+        const user = await User.create({
+            name: "John Doe",
+            email: "john@mail.com",
+            password: "hashedpassword",
+            role: "user"
+        });
+
+        const token = jwt.sign(
+            { id: user._id },
+            process.env.JWT_SECRET,
+            { expiresIn: "7d" }
+        );
+
+        return { user, cookie: `userToken=${token}` };
+    };
+
+    it("should return 401 if user is not authenticated", async () => {
+        const res = await request(app).get("/api/v1/auth/me");
+        expect(res.status).toBe(401);
+        expect(res.body.success).toBe(false);
+    });
+
+    it("should return user details for authenticated user", async () => {
+        const { user, cookie } = await createAuthCookie();
+
+        const res = await request(app)
+            .get("/api/v1/auth/me")
+            .set("Cookie", cookie);
+
+        expect(res.status).toBe(200);
+        expect(res.body.success).toBe(true);
+        expect(res.body.user).toBeDefined();
+
+        expect(res.body.user.email).toBe(user.email);
+        expect(res.body.user.name).toBe(user.name);
+    });
+
+    it("should return 500 if middleware fails internally", async () => {
+        const { cookie } = await createAuthCookie();
+
+        const UserModule = await import("../models/User.js");
+
+        jest.spyOn(UserModule.default, "findById")
+            .mockImplementation(() => { throw new Error("Internal DB error"); });
+
+        const res = await request(app)
+            .get("/api/v1/auth/me")
+            .set("Cookie", cookie);
+
+        expect(res.status).toBe(500);
+
+        UserModule.default.findById.mockRestore();
+    });
+
+});
