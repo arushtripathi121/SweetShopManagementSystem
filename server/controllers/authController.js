@@ -3,5 +3,13 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 export const SignUp = (req, res) => {
-    return res.status(500).json({ success: false });
+  return res.status(500).json({ success: false });
+};
+
+export const Login = (req, res) => {
+  return res.status(500).json({ success: false });
+};
+
+export const Logout = (req, res) => {
+  return res.status(500).json({ success: false });
 };
