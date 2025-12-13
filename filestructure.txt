@@ -12,8 +12,13 @@
         |-- App.css
         |-- App.jsx
         |-- assets
+            |-- about1.jpg
+            |-- about2.jpg
+            |-- about3.jpg
+            |-- about4.png
             |-- logo.png
         |-- components
+            |-- About.jsx
             |-- Header.jsx
             |-- UserAuth.jsx
         |-- context

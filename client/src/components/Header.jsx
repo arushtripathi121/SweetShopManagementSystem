@@ -7,7 +7,7 @@ const Header = () => {
     const { setAuthOpen } = useUser();
 
     return (
-        <header className="w-full shadow-sm bg-white font-poppins">
+        <header className="w-full bg-white font-poppins">
             <div className="max-w-6xl mx-auto flex items-center justify-between py-4 px-4">
 
                 <div className="flex items-center gap-3">

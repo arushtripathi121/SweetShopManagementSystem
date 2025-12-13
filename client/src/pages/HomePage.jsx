@@ -3,6 +3,7 @@ import { useUser } from "../context/UserContext";
 import { api } from "../hooks/api";
 import Header from "../components/Header";
 import UserAuth from "../components/UserAuth";
+import About from "../components/About";
 
 const HomePage = () => {
     const { user, setUser, isAdmin, setIsAdmin } = useUser();
@@ -34,6 +35,7 @@ const HomePage = () => {
         <div>
             <Header />
             <UserAuth />
+            <About />
         </div>
     )
 };
