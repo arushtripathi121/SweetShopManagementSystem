@@ -6,13 +6,18 @@ import {
     updateSweet,
     deleteSweet,
 } from "../controllers/sweetController.js";
+import { isAuthenticated } from "../middlewares/authMiddleware.js";
+import { isAdmin } from "../middlewares/adminMiddleware.js";
 
 const sweetRouter = express.Router();
 
-sweetRouter.post("/", addSweet);
+// Public routes (no login required)
 sweetRouter.get("/", getAllSweets);
 sweetRouter.get("/search", searchSweets);
-sweetRouter.put("/:id", updateSweet);
-sweetRouter.delete("/:id", deleteSweet);
+
+// Admin-only routes
+sweetRouter.post("/", isAuthenticated, isAdmin, addSweet);
+sweetRouter.put("/:id", isAuthenticated, isAdmin, updateSweet);
+sweetRouter.delete("/:id", isAuthenticated, isAdmin, deleteSweet);
 
 export default sweetRouter;

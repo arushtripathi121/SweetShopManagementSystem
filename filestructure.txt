@@ -5,7 +5,12 @@
         |-- dbConnection.js
     |-- controllers
         |-- authController.js
+        |-- inventoryController.js
+        |-- sweetController.js
     |-- jest.config.mjs
+    |-- middlewares
+        |-- adminMiddleware.js
+        |-- authMiddleware.js
     |-- models
         |-- Sweet.js
         |-- User.js
@@ -13,9 +18,12 @@
     |-- package.json
     |-- routes
         |-- authRoutes.js
+        |-- inventoryRoutes.js
+        |-- sweetRoutes.js
     |-- server
         |-- app.js
         |-- server.js
     |-- tests
         |-- auth.test.js
         |-- setup.js
+        |-- sweet.test.js
