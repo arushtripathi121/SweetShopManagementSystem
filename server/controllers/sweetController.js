@@ -114,3 +114,22 @@ export const deleteSweet = async (req, res) => {
         return sendError(res, 500, "Internal server error");
     }
 };
+
+
+// GET SWEET BY ID
+export const getSweetById = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const sweet = await Sweet.findById(id);
+
+        if (!sweet) {
+            return sendError(res, 404, "Sweet not found");
+        }
+
+        return sendSuccess(res, 200, { sweet });
+
+    } catch {
+        return sendError(res, 500, "Internal server error");
+    }
+};
