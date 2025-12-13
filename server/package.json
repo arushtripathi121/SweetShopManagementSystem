@@ -8,7 +8,7 @@
   "main": "server.js",
   "scripts": {
     "dev": "nodemon server.js",
-    "test": "cross-env NODE_ENV=test node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand"
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --runInBand"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

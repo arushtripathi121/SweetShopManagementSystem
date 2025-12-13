@@ -5,7 +5,7 @@
         |-- dbConnection.js
     |-- controllers
         |-- authController.js
-    |-- jest.config.js
+    |-- jest.config.mjs
     |-- models
         |-- Sweet.js
         |-- User.js
