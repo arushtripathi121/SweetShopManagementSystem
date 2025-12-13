@@ -47,7 +47,7 @@ afterAll(async () => {
 
 
 /* -------------------------------------------------------------
-   PUBLIC ROUTES: NO AUTH REQUIRED
+   PUBLIC ROUTES
 -------------------------------------------------------------- */
 
 // GET ALL
@@ -60,7 +60,7 @@ describe("GET /api/v1/sweet/", () => {
     });
 
     it("returns all sweets", async () => {
-        await Sweet.create({ name: "Jalebi", category: "Indian", price: 20, quantity: 10 });
+        await Sweet.create({ name: "Jalebi", category: "Indian", price: 20, quantity: 10, image: "img.jpg" });
 
         const res = await request(app).get("/api/v1/sweet/");
         expect(res.status).toBe(200);
@@ -81,7 +81,7 @@ describe("GET /api/v1/sweet/", () => {
 describe("GET /api/v1/sweet/search", () => {
 
     it("filters by name", async () => {
-        await Sweet.create({ name: "Barfi", category: "Classic", price: 15, quantity: 5 });
+        await Sweet.create({ name: "Barfi", category: "Classic", price: 15, quantity: 5, image: "img.jpg" });
 
         const res = await request(app).get("/api/v1/sweet/search?name=bar");
         expect(res.status).toBe(200);
@@ -89,7 +89,7 @@ describe("GET /api/v1/sweet/search", () => {
     });
 
     it("filters by category", async () => {
-        await Sweet.create({ name: "Ladoo", category: "Indian", price: 10, quantity: 8 });
+        await Sweet.create({ name: "Ladoo", category: "Indian", price: 10, quantity: 8, image: "img.jpg" });
 
         const res = await request(app).get("/api/v1/sweet/search?category=Indian");
         expect(res.status).toBe(200);
@@ -97,7 +97,7 @@ describe("GET /api/v1/sweet/search", () => {
     });
 
     it("filters by price range", async () => {
-        await Sweet.create({ name: "Halwa", category: "Indian", price: 30, quantity: 5 });
+        await Sweet.create({ name: "Halwa", category: "Indian", price: 30, quantity: 5, image: "img.jpg" });
 
         const res = await request(app).get("/api/v1/sweet/search?minPrice=20&maxPrice=40");
         expect(res.status).toBe(200);
@@ -114,7 +114,6 @@ describe("GET /api/v1/sweet/search", () => {
 
 
 
-
 /* -------------------------------------------------------------
    ADMIN PROTECTED ROUTES
 -------------------------------------------------------------- */
@@ -125,7 +124,7 @@ describe("POST /api/v1/sweet/ (Admin only)", () => {
     it("blocks unauthenticated user", async () => {
         const res = await request(app)
             .post("/api/v1/sweet/")
-            .send({ name: "Ladoo", category: "Indian", price: 10, quantity: 5 });
+            .send({ name: "Ladoo", category: "Indian", price: 10, quantity: 5, image: "img.jpg" });
 
         expect(res.status).toBe(401);
     });
@@ -136,7 +135,7 @@ describe("POST /api/v1/sweet/ (Admin only)", () => {
         const res = await request(app)
             .post("/api/v1/sweet/")
             .set("Cookie", cookie)
-            .send({ name: "Ladoo", category: "Indian", price: 10, quantity: 5 });
+            .send({ name: "Ladoo", category: "Indian", price: 10, quantity: 5, image: "img.jpg" });
 
         expect(res.status).toBe(403);
     });
@@ -147,7 +146,7 @@ describe("POST /api/v1/sweet/ (Admin only)", () => {
         const res = await request(app)
             .post("/api/v1/sweet/")
             .set("Cookie", cookie)
-            .send({ name: "Ladoo", category: "Indian", price: 10, quantity: 5 });
+            .send({ name: "Ladoo", category: "Indian", price: 10, quantity: 5, image: "img.jpg" });
 
         expect(res.status).toBe(201);
         expect(res.body.sweet.name).toBe("Ladoo");
@@ -159,7 +158,7 @@ describe("POST /api/v1/sweet/ (Admin only)", () => {
         const res = await request(app)
             .post("/api/v1/sweet/")
             .set("Cookie", cookie)
-            .send({ name: "Incomplete" });
+            .send({ name: "Incomplete", image: "" }); // missing category, price, quantity
 
         expect(res.status).toBe(400);
     });
@@ -172,13 +171,18 @@ describe("POST /api/v1/sweet/ (Admin only)", () => {
         const res = await request(app)
             .post("/api/v1/sweet/")
             .set("Cookie", cookie)
-            .send({ name: "Barfi", category: "Classic", price: 20, quantity: 10 });
+            .send({
+                name: "Barfi",
+                category: "Classic",
+                price: 20,
+                quantity: 10,
+                image: "img.jpg"
+            });
 
         expect(res.status).toBe(500);
     });
 
 });
-
 
 
 
@@ -212,7 +216,8 @@ describe("PUT /api/v1/sweet/:id (Admin only)", () => {
             name: "Peda",
             category: "Indian",
             price: 10,
-            quantity: 3
+            quantity: 3,
+            image: "img.jpg"
         });
 
         const cookie = await createAuthCookie("admin");
@@ -240,7 +245,6 @@ describe("PUT /api/v1/sweet/:id (Admin only)", () => {
     });
 
 });
-
 
 
 
@@ -272,7 +276,8 @@ describe("DELETE /api/v1/sweet/:id (Admin only)", () => {
             name: "Halwa",
             category: "Indian",
             price: 12,
-            quantity: 5
+            quantity: 5,
+            image: "img.jpg"
         });
 
         const cookie = await createAuthCookie("admin");
@@ -298,4 +303,3 @@ describe("DELETE /api/v1/sweet/:id (Admin only)", () => {
     });
 
 });
-
