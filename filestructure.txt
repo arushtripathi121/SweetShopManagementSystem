@@ -1,0 +1,8 @@
+|-- server
+    |-- .env
+    |-- .gitignore
+    |-- config
+        |-- dbConnection.js
+    |-- package-lock.json
+    |-- package.json
+    |-- server.js
