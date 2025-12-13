@@ -1,46 +1,65 @@
 import request from "supertest";
 import app from "../server/app.js";
 import Sweet from "../models/Sweet.js";
+import User from "../models/User.js";
+import jwt from "jsonwebtoken";
 import { jest } from "@jest/globals";
-
 import {
     connectDBForTesting,
     closeDBForTesting,
     clearDB
 } from "./setup.js";
 
-// Fake cookies for middleware (you will replace these later)
-const adminCookie = "userToken=admin";
-const userCookie = "userToken=user";
+// Helper: creates a real JWT cookie for tests
+const createAuthCookie = async (role = "user") => {
+    const user = await User.create({
+        name: "Test User",
+        email: `${role}@mail.com`,
+        password: "hashed",
+        role
+    });
 
+    const token = jwt.sign(
+        { id: user._id },
+        process.env.JWT_SECRET,
+        { expiresIn: "7d" }
+    );
+
+    return `userToken=${token}`;
+};
+
+// Connect to testing DB
 beforeAll(async () => {
     await connectDBForTesting();
 });
 
+// Clean the database between tests
 afterEach(async () => {
     await clearDB();
     jest.restoreAllMocks();
 });
 
+// Close DB connection
 afterAll(async () => {
     await closeDBForTesting();
 });
 
 
-/* ----------------------------------------------------------
-   PUBLIC ROUTES — NO AUTH REQUIRED
------------------------------------------------------------ */
+
+/* -------------------------------------------------------------
+   PUBLIC ROUTES: NO AUTH REQUIRED
+-------------------------------------------------------------- */
 
 // GET ALL
 describe("GET /api/v1/sweet/", () => {
 
-    it("returns an empty list when no sweets exist", async () => {
+    it("returns empty list when no sweets exist", async () => {
         const res = await request(app).get("/api/v1/sweet/");
         expect(res.status).toBe(200);
         expect(res.body.sweets).toEqual([]);
     });
 
-    it("returns all sweets without authentication", async () => {
+    it("returns all sweets", async () => {
         await Sweet.create({ name: "Jalebi", category: "Indian", price: 20, quantity: 10 });
 
         const res = await request(app).get("/api/v1/sweet/");
@@ -48,11 +67,12 @@ describe("GET /api/v1/sweet/", () => {
         expect(res.body.sweets.length).toBe(1);
     });
 
-    it("returns 500 when DB fails", async () => {
+    it("returns 500 when DB throws error", async () => {
         jest.spyOn(Sweet, "find").mockRejectedValue(new Error("DB error"));
         const res = await request(app).get("/api/v1/sweet/");
         expect(res.status).toBe(500);
     });
+
 });
 
 
@@ -60,7 +80,7 @@ describe("GET /api/v1/sweet/", () => {
 // SEARCH
 describe("GET /api/v1/sweet/search", () => {
 
-    it("searches sweets by name", async () => {
+    it("filters by name", async () => {
         await Sweet.create({ name: "Barfi", category: "Classic", price: 15, quantity: 5 });
 
         const res = await request(app).get("/api/v1/sweet/search?name=bar");
@@ -68,7 +88,7 @@ describe("GET /api/v1/sweet/search", () => {
         expect(res.body.sweets.length).toBe(1);
     });
 
-    it("searches by category", async () => {
+    it("filters by category", async () => {
         await Sweet.create({ name: "Ladoo", category: "Indian", price: 10, quantity: 8 });
 
         const res = await request(app).get("/api/v1/sweet/search?category=Indian");
@@ -77,9 +97,9 @@ describe("GET /api/v1/sweet/search", () => {
     });
 
     it("filters by price range", async () => {
-        await Sweet.create({ name: "Jalebi", category: "Indian", price: 25, quantity: 10 });
+        await Sweet.create({ name: "Halwa", category: "Indian", price: 30, quantity: 5 });
 
-        const res = await request(app).get("/api/v1/sweet/search?minPrice=20&maxPrice=30");
+        const res = await request(app).get("/api/v1/sweet/search?minPrice=20&maxPrice=40");
         expect(res.status).toBe(200);
         expect(res.body.sweets.length).toBe(1);
     });
@@ -89,103 +109,100 @@ describe("GET /api/v1/sweet/search", () => {
         const res = await request(app).get("/api/v1/sweet/search");
         expect(res.status).toBe(500);
     });
+
 });
 
 
 
-/* ----------------------------------------------------------
+
+/* -------------------------------------------------------------
    ADMIN PROTECTED ROUTES
------------------------------------------------------------ */
+-------------------------------------------------------------- */
 
 // ADD
-describe("POST /api/v1/sweet/ (Admin)", () => {
+describe("POST /api/v1/sweet/ (Admin only)", () => {
 
     it("blocks unauthenticated user", async () => {
-        const res = await request(app).post("/api/v1/sweet/").send({
-            name: "Ladoo",
-            category: "Indian",
-            price: 10,
-            quantity: 5
-        });
+        const res = await request(app)
+            .post("/api/v1/sweet/")
+            .send({ name: "Ladoo", category: "Indian", price: 10, quantity: 5 });
 
-        // real middleware will give 401 or 403
-        expect([401, 403]).toContain(res.status);
+        expect(res.status).toBe(401);
     });
 
     it("blocks normal user", async () => {
+        const cookie = await createAuthCookie("user");
+
         const res = await request(app)
             .post("/api/v1/sweet/")
-            .set("Cookie", userCookie)
-            .send({
-                name: "Ladoo",
-                category: "Indian",
-                price: 10,
-                quantity: 5
-            });
+            .set("Cookie", cookie)
+            .send({ name: "Ladoo", category: "Indian", price: 10, quantity: 5 });
 
-        expect([403]).toContain(res.status);
+        expect(res.status).toBe(403);
     });
 
     it("allows admin to create sweet", async () => {
+        const cookie = await createAuthCookie("admin");
+
         const res = await request(app)
             .post("/api/v1/sweet/")
-            .set("Cookie", adminCookie)
-            .send({
-                name: "Ladoo",
-                category: "Indian",
-                price: 10,
-                quantity: 5
-            });
+            .set("Cookie", cookie)
+            .send({ name: "Ladoo", category: "Indian", price: 10, quantity: 5 });
 
         expect(res.status).toBe(201);
         expect(res.body.sweet.name).toBe("Ladoo");
     });
 
     it("requires all fields", async () => {
+        const cookie = await createAuthCookie("admin");
+
         const res = await request(app)
             .post("/api/v1/sweet/")
-            .set("Cookie", adminCookie)
+            .set("Cookie", cookie)
             .send({ name: "Incomplete" });
 
         expect(res.status).toBe(400);
     });
 
     it("returns 500 on DB error", async () => {
-        jest.spyOn(Sweet, "create").mockRejectedValue(new Error("DB error"));
+        jest.spyOn(Sweet, "create").mockRejectedValue(new Error("fail"));
+
+        const cookie = await createAuthCookie("admin");
 
         const res = await request(app)
             .post("/api/v1/sweet/")
-            .set("Cookie", adminCookie)
-            .send({
-                name: "Barfi",
-                category: "Classic",
-                price: 20,
-                quantity: 10
-            });
+            .set("Cookie", cookie)
+            .send({ name: "Barfi", category: "Classic", price: 20, quantity: 10 });
 
         expect(res.status).toBe(500);
     });
+
 });
 
 
 
-// UPDATE
-describe("PUT /api/v1/sweet/:id (Admin)", () => {
 
-    it("blocks non-admin", async () => {
+// UPDATE
+describe("PUT /api/v1/sweet/:id (Admin only)", () => {
+
+    it("blocks non-admin user", async () => {
+        const cookie = await createAuthCookie("user");
+
         const res = await request(app)
             .put("/api/v1/sweet/123")
-            .set("Cookie", userCookie)
-            .send({ name: "New" });
+            .set("Cookie", cookie)
+            .send({ name: "Update" });
 
-        expect([403]).toContain(res.status);
+        expect(res.status).toBe(403);
     });
 
-    it("returns 404 when sweet not found", async () => {
+    it("returns 404 when sweet does not exist", async () => {
+        const cookie = await createAuthCookie("admin");
+
         const res = await request(app)
             .put("/api/v1/sweet/507f191e810c19729de860ea")
-            .set("Cookie", adminCookie)
-            .send({ name: "New Sweet" });
+            .set("Cookie", cookie)
+            .send({ name: "New Name" });
 
         expect(res.status).toBe(404);
     });
@@ -194,13 +211,15 @@ describe("PUT /api/v1/sweet/:id (Admin)", () => {
         const sweet = await Sweet.create({
             name: "Peda",
             category: "Indian",
-            price: 15,
-            quantity: 10
+            price: 10,
+            quantity: 3
         });
+
+        const cookie = await createAuthCookie("admin");
 
         const res = await request(app)
             .put(`/api/v1/sweet/${sweet._id}`)
-            .set("Cookie", adminCookie)
+            .set("Cookie", cookie)
             .send({ name: "Updated Peda" });
 
         expect(res.status).toBe(200);
@@ -208,34 +227,42 @@ describe("PUT /api/v1/sweet/:id (Admin)", () => {
     });
 
     it("returns 500 on DB error", async () => {
-        jest.spyOn(Sweet, "findByIdAndUpdate").mockRejectedValue(new Error("DB error"));
+        jest.spyOn(Sweet, "findByIdAndUpdate").mockRejectedValue(new Error("fail"));
+
+        const cookie = await createAuthCookie("admin");
 
         const res = await request(app)
             .put("/api/v1/sweet/123")
-            .set("Cookie", adminCookie)
+            .set("Cookie", cookie)
             .send({ name: "Test" });
 
         expect(res.status).toBe(500);
     });
+
 });
 
 
 
-// DELETE
-describe("DELETE /api/v1/sweet/:id (Admin)", () => {
 
-    it("blocks non-admin users", async () => {
+// DELETE
+describe("DELETE /api/v1/sweet/:id (Admin only)", () => {
+
+    it("blocks non-admin user", async () => {
+        const cookie = await createAuthCookie("user");
+
         const res = await request(app)
             .delete("/api/v1/sweet/123")
-            .set("Cookie", userCookie);
+            .set("Cookie", cookie);
 
-        expect([403]).toContain(res.status);
+        expect(res.status).toBe(403);
     });
 
-    it("returns 404 when trying to delete non-existing sweet", async () => {
+    it("returns 404 when deleting non-existing sweet", async () => {
+        const cookie = await createAuthCookie("admin");
+
         const res = await request(app)
             .delete("/api/v1/sweet/507f191e810c19729de860ea")
-            .set("Cookie", adminCookie);
+            .set("Cookie", cookie);
 
         expect(res.status).toBe(404);
     });
@@ -248,21 +275,27 @@ describe("DELETE /api/v1/sweet/:id (Admin)", () => {
             quantity: 5
         });
 
+        const cookie = await createAuthCookie("admin");
+
         const res = await request(app)
             .delete(`/api/v1/sweet/${sweet._id}`)
-            .set("Cookie", adminCookie);
+            .set("Cookie", cookie);
 
         expect(res.status).toBe(200);
         expect(res.body.message).toBe("Sweet deleted successfully");
     });
 
     it("returns 500 on DB error", async () => {
-        jest.spyOn(Sweet, "findByIdAndDelete").mockRejectedValue(new Error("DB error"));
+        jest.spyOn(Sweet, "findByIdAndDelete").mockRejectedValue(new Error("fail"));
+
+        const cookie = await createAuthCookie("admin");
 
         const res = await request(app)
             .delete("/api/v1/sweet/123")
-            .set("Cookie", adminCookie);
+            .set("Cookie", cookie);
 
         expect(res.status).toBe(500);
     });
+
 });
+
