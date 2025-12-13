@@ -10,7 +10,7 @@ import {
     clearDB
 } from "./setup.js";
 
-// Helper: creates a real JWT cookie for tests
+// Create real JWT cookie
 const createAuthCookie = async (role = "user") => {
     const user = await User.create({
         name: "Test User",
@@ -28,18 +28,15 @@ const createAuthCookie = async (role = "user") => {
     return `userToken=${token}`;
 };
 
-// Connect to testing DB
 beforeAll(async () => {
     await connectDBForTesting();
 });
 
-// Clean the database between tests
 afterEach(async () => {
     await clearDB();
     jest.restoreAllMocks();
 });
 
-// Close DB connection
 afterAll(async () => {
     await closeDBForTesting();
 });
@@ -60,7 +57,15 @@ describe("GET /api/v1/sweet/", () => {
     });
 
     it("returns all sweets", async () => {
-        await Sweet.create({ name: "Jalebi", category: "Indian", price: 20, quantity: 10, image: "img.jpg" });
+        await Sweet.create({
+            name: "Jalebi",
+            category: "Indian",
+            price: 20,
+            quantity: 10,
+            image: "img.jpg",
+            rating: 4.5,
+            description: "Sweet and crispy"
+        });
 
         const res = await request(app).get("/api/v1/sweet/");
         expect(res.status).toBe(200);
@@ -81,7 +86,15 @@ describe("GET /api/v1/sweet/", () => {
 describe("GET /api/v1/sweet/search", () => {
 
     it("filters by name", async () => {
-        await Sweet.create({ name: "Barfi", category: "Classic", price: 15, quantity: 5, image: "img.jpg" });
+        await Sweet.create({
+            name: "Barfi",
+            category: "Classic",
+            price: 15,
+            quantity: 5,
+            image: "img.jpg",
+            rating: 4.2,
+            description: "Delicious"
+        });
 
         const res = await request(app).get("/api/v1/sweet/search?name=bar");
         expect(res.status).toBe(200);
@@ -89,7 +102,15 @@ describe("GET /api/v1/sweet/search", () => {
     });
 
     it("filters by category", async () => {
-        await Sweet.create({ name: "Ladoo", category: "Indian", price: 10, quantity: 8, image: "img.jpg" });
+        await Sweet.create({
+            name: "Ladoo",
+            category: "Indian",
+            price: 10,
+            quantity: 8,
+            image: "img.jpg",
+            rating: 4.7,
+            description: "Soft and sweet"
+        });
 
         const res = await request(app).get("/api/v1/sweet/search?category=Indian");
         expect(res.status).toBe(200);
@@ -97,7 +118,15 @@ describe("GET /api/v1/sweet/search", () => {
     });
 
     it("filters by price range", async () => {
-        await Sweet.create({ name: "Halwa", category: "Indian", price: 30, quantity: 5, image: "img.jpg" });
+        await Sweet.create({
+            name: "Halwa",
+            category: "Indian",
+            price: 30,
+            quantity: 5,
+            image: "img.jpg",
+            rating: 4.0,
+            description: "Rich taste"
+        });
 
         const res = await request(app).get("/api/v1/sweet/search?minPrice=20&maxPrice=40");
         expect(res.status).toBe(200);
@@ -124,7 +153,13 @@ describe("POST /api/v1/sweet/ (Admin only)", () => {
     it("blocks unauthenticated user", async () => {
         const res = await request(app)
             .post("/api/v1/sweet/")
-            .send({ name: "Ladoo", category: "Indian", price: 10, quantity: 5, image: "img.jpg" });
+            .send({
+                name: "Ladoo",
+                category: "Indian",
+                price: 10,
+                quantity: 5,
+                image: "img.jpg"
+            });
 
         expect(res.status).toBe(401);
     });
@@ -135,7 +170,13 @@ describe("POST /api/v1/sweet/ (Admin only)", () => {
         const res = await request(app)
             .post("/api/v1/sweet/")
             .set("Cookie", cookie)
-            .send({ name: "Ladoo", category: "Indian", price: 10, quantity: 5, image: "img.jpg" });
+            .send({
+                name: "Ladoo",
+                category: "Indian",
+                price: 10,
+                quantity: 5,
+                image: "img.jpg"
+            });
 
         expect(res.status).toBe(403);
     });
@@ -146,19 +187,27 @@ describe("POST /api/v1/sweet/ (Admin only)", () => {
         const res = await request(app)
             .post("/api/v1/sweet/")
             .set("Cookie", cookie)
-            .send({ name: "Ladoo", category: "Indian", price: 10, quantity: 5, image: "img.jpg" });
+            .send({
+                name: "Ladoo",
+                category: "Indian",
+                price: 10,
+                quantity: 5,
+                image: "img.jpg",
+                rating: 4.5,
+                description: "Tasty"
+            });
 
         expect(res.status).toBe(201);
         expect(res.body.sweet.name).toBe("Ladoo");
     });
 
-    it("requires all fields", async () => {
+    it("requires all mandatory fields", async () => {
         const cookie = await createAuthCookie("admin");
 
         const res = await request(app)
             .post("/api/v1/sweet/")
             .set("Cookie", cookie)
-            .send({ name: "Incomplete", image: "" }); // missing category, price, quantity
+            .send({ name: "Incomplete", image: "" });
 
         expect(res.status).toBe(400);
     });
@@ -200,7 +249,7 @@ describe("PUT /api/v1/sweet/:id (Admin only)", () => {
         expect(res.status).toBe(403);
     });
 
-    it("returns 404 when sweet does not exist", async () => {
+    it("returns 404 when sweet not found", async () => {
         const cookie = await createAuthCookie("admin");
 
         const res = await request(app)
@@ -217,7 +266,9 @@ describe("PUT /api/v1/sweet/:id (Admin only)", () => {
             category: "Indian",
             price: 10,
             quantity: 3,
-            image: "img.jpg"
+            image: "img.jpg",
+            rating: 4,
+            description: "Soft Peda"
         });
 
         const cookie = await createAuthCookie("admin");
@@ -225,10 +276,11 @@ describe("PUT /api/v1/sweet/:id (Admin only)", () => {
         const res = await request(app)
             .put(`/api/v1/sweet/${sweet._id}`)
             .set("Cookie", cookie)
-            .send({ name: "Updated Peda" });
+            .send({ name: "Updated Peda", rating: 5 });
 
         expect(res.status).toBe(200);
         expect(res.body.sweet.name).toBe("Updated Peda");
+        expect(res.body.sweet.rating).toBe(5);
     });
 
     it("returns 500 on DB error", async () => {
@@ -277,7 +329,9 @@ describe("DELETE /api/v1/sweet/:id (Admin only)", () => {
             category: "Indian",
             price: 12,
             quantity: 5,
-            image: "img.jpg"
+            image: "img.jpg",
+            rating: 4,
+            description: "Best Halwa"
         });
 
         const cookie = await createAuthCookie("admin");
