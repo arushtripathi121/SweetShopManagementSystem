@@ -3,54 +3,58 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 
-// Signup Controller
+// Generates a signed JWT for the user
+const generateToken = (payload) => {
+    return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "7d" });
+};
+
+// Attaches auth token to cookie with proper security options
+const setAuthCookie = (res, token) => {
+    res.cookie("userToken", token, {
+        httpOnly: true,                             // prevents JS access
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000             // 7 days
+    });
+};
+
+// Sends a consistent error structure
+const sendError = (res, code, message) => {
+    return res.status(code).json({ success: false, message });
+};
+
+
+
+
+// SIGNUP -------------------------------------------------
 export const SignUp = async (req, res) => {
     try {
-
-        // Extract user input
         const { name, email, password } = req.body;
 
-        // Basic field validation
+        // Basic required field check
         if (!name || !email || !password) {
-            return res.status(400).json({
-                success: false,
-                message: "Name, email or password not present"
-            });
+            return sendError(res, 400, "Name, email or password not present");
         }
 
-        // Check if user already exists
-        const user = await User.findOne({ email });
-        if (user) {
-            return res.status(409).json({
-                success: false,
-                message: "User already registered"
-            });
+        // Avoid duplicate accounts
+        const existing = await User.findOne({ email });
+        if (existing) {
+            return sendError(res, 409, "User already registered");
         }
 
-        // Hash password before saving
+        // Hash the password before saving
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Create new user
+        // Create the new user
         const newUser = await User.create({
             name,
             email,
             password: hashedPassword
         });
 
-        // Generate JWT token
-        const token = jwt.sign(
-            { id: newUser._id, email },
-            process.env.JWT_SECRET,
-            { expiresIn: "7d" }
-        );
-
-        // Set token in secure cookie
-        res.cookie("userToken", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-            maxAge: 7 * 24 * 60 * 60 * 1000
-        });
+        // Issue token and set cookie
+        const token = generateToken({ id: newUser._id, email });
+        setAuthCookie(res, token);
 
         return res.status(201).json({
             success: true,
@@ -58,62 +62,39 @@ export const SignUp = async (req, res) => {
         });
 
     } catch {
-        // Fallback error handling
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error"
-        });
+        // Generic fallback error
+        return sendError(res, 500, "Internal server error");
     }
 };
 
 
 
-// Login Controller
+
+// LOGIN --------------------------------------------------
 export const Login = async (req, res) => {
     try {
-
         const { email, password } = req.body;
 
-        // Validate required fields
+        // Quick validation check
         if (!email || !password) {
-            return res.status(400).json({
-                success: false,
-                message: "Email or password not provided"
-            });
+            return sendError(res, 400, "Email or password not provided");
         }
 
-        // Check if user exists
+        // Look up the user by email
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(401).json({
-                success: false,
-                message: "Invalid credentials"
-            });
+            return sendError(res, 401, "Invalid credentials");
         }
 
-        // Verify password
-        const match = await bcrypt.compare(password, user.password);
-        if (!match) {
-            return res.status(401).json({
-                success: false,
-                message: "Invalid credentials"
-            });
+        // Verify password against stored hash
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return sendError(res, 401, "Invalid credentials");
         }
 
-        // Generate JWT token
-        const token = jwt.sign(
-            { id: user._id, email: user.email },
-            process.env.JWT_SECRET,
-            { expiresIn: "7d" }
-        );
-
-        // Set authentication cookie
-        res.cookie("userToken", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-            maxAge: 7 * 24 * 60 * 60 * 1000
-        });
+        // Create and store token
+        const token = generateToken({ id: user._id, email: user.email });
+        setAuthCookie(res, token);
 
         return res.status(200).json({
             success: true,
@@ -121,20 +102,16 @@ export const Login = async (req, res) => {
         });
 
     } catch {
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error"
-        });
+        return sendError(res, 500, "Internal server error");
     }
 };
 
 
 
-// Logout Controller
+// LOGOUT -------------------------------------------------
 export const Logout = async (req, res) => {
     try {
-
-        // Expire the cookie immediately
+        // Simply clear the cookie by expiring it
         res.cookie("userToken", "", {
             httpOnly: true,
             expires: new Date(0),
@@ -148,9 +125,6 @@ export const Logout = async (req, res) => {
         });
 
     } catch {
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error"
-        });
+        return sendError(res, 500, "Internal server error");
     }
 };
