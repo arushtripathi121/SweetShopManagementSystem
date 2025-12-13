@@ -42,7 +42,6 @@ afterAll(async () => {
 });
 
 
-
 /* -------------------------------------------------------------
    PUBLIC ROUTES
 -------------------------------------------------------------- */
@@ -79,7 +78,6 @@ describe("GET /api/v1/sweet/", () => {
     });
 
 });
-
 
 
 // SEARCH
@@ -136,6 +134,42 @@ describe("GET /api/v1/sweet/search", () => {
     it("returns 500 on DB error", async () => {
         jest.spyOn(Sweet, "find").mockRejectedValue(new Error("DB error"));
         const res = await request(app).get("/api/v1/sweet/search");
+        expect(res.status).toBe(500);
+    });
+
+});
+
+
+/* -------------------------------------------------------------
+   GET SWEET BY ID
+-------------------------------------------------------------- */
+
+describe("GET /api/v1/sweet/:id", () => {
+
+    it("returns sweet by ID", async () => {
+        const sweet = await Sweet.create({
+            name: "Kaju Katli",
+            category: "Dry Fruit",
+            price: 400,
+            quantity: 25,
+            image: "img.jpg",
+            rating: 4.8,
+            description: "Premium sweet"
+        });
+
+        const res = await request(app).get(`/api/v1/sweet/${sweet._id}`);
+        expect(res.status).toBe(200);
+        expect(res.body.sweet.name).toBe("Kaju Katli");
+    });
+
+    it("returns 404 if sweet not found", async () => {
+        const res = await request(app).get("/api/v1/sweet/507f191e810c19729de860ea");
+        expect(res.status).toBe(404);
+    });
+
+    it("returns 500 on DB error", async () => {
+        jest.spyOn(Sweet, "findById").mockRejectedValue(new Error("fail"));
+        const res = await request(app).get("/api/v1/sweet/123");
         expect(res.status).toBe(500);
     });
 
