@@ -1,22 +1,32 @@
 |-- client
+    |-- .env
     |-- .gitignore
     |-- eslint.config.js
     |-- index.html
     |-- package-lock.json
     |-- package.json
     |-- public
+        |-- logo.png
     |-- README.md
     |-- src
         |-- App.css
         |-- App.jsx
         |-- assets
+            |-- logo.png
         |-- components
+            |-- Header.jsx
+            |-- UserAuth.jsx
         |-- context
             |-- UserContext.jsx
+        |-- hooks
+            |-- api.js
         |-- index.css
         |-- main.jsx
         |-- pages
             |-- HomePage.jsx
+    |-- tests
+        |-- HomePage.test.jsx
+        |-- setup.js
     |-- vite.config.js
 |-- server
     |-- .env
