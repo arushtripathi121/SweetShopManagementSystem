@@ -1,5 +1,15 @@
 import Sweet from "../models/Sweet.js";
 
+// Helper: consistent error response
+const sendError = (res, code, message) => {
+    return res.status(code).json({ success: false, message });
+};
+
+// Helper: wrap successful responses
+const sendSuccess = (res, code, data = {}) => {
+    return res.status(code).json({ success: true, ...data });
+};
+
 
 
 // addSweet controller
@@ -8,24 +18,15 @@ export const addSweet = async (req, res) => {
 
     try {
         if (!name || !category || price == null || quantity == null) {
-            return res.status(400).json({
-                success: false,
-                message: "All fields (name, category, price, quantity) are required"
-            });
+            return sendError(res, 400, "All fields (name, category, price, quantity) are required");
         }
 
         const sweet = await Sweet.create({ name, category, price, quantity });
 
-        return res.status(201).json({
-            success: true,
-            sweet
-        });
+        return sendSuccess(res, 201, { sweet });
 
-    } catch (err) {
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error"
-        });
+    } catch {
+        return sendError(res, 500, "Internal server error");
     }
 };
 
@@ -35,17 +36,10 @@ export const addSweet = async (req, res) => {
 export const getAllSweets = async (req, res) => {
     try {
         const sweets = await Sweet.find();
+        return sendSuccess(res, 200, { sweets });
 
-        return res.status(200).json({
-            success: true,
-            sweets
-        });
-
-    } catch (err) {
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error"
-        });
+    } catch {
+        return sendError(res, 500, "Internal server error");
     }
 };
 
@@ -57,9 +51,17 @@ export const searchSweets = async (req, res) => {
         const { name, category, minPrice, maxPrice } = req.query;
         const filter = {};
 
-        if (name) filter.name = { $regex: name, $options: "i" };
-        if (category) filter.category = { $regex: category, $options: "i" };
+        // name match
+        if (name) {
+            filter.name = { $regex: name, $options: "i" };
+        }
 
+        // category match
+        if (category) {
+            filter.category = { $regex: category, $options: "i" };
+        }
+
+        // price filtering
         if (minPrice || maxPrice) {
             filter.price = {};
             if (minPrice) filter.price.$gte = Number(minPrice);
@@ -67,17 +69,10 @@ export const searchSweets = async (req, res) => {
         }
 
         const sweets = await Sweet.find(filter);
+        return sendSuccess(res, 200, { sweets });
 
-        return res.status(200).json({
-            success: true,
-            sweets
-        });
-
-    } catch (err) {
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error"
-        });
+    } catch {
+        return sendError(res, 500, "Internal server error");
     }
 };
 
@@ -93,22 +88,13 @@ export const updateSweet = async (req, res) => {
         });
 
         if (!updatedSweet) {
-            return res.status(404).json({
-                success: false,
-                message: "Sweet not found"
-            });
+            return sendError(res, 404, "Sweet not found");
         }
 
-        return res.status(200).json({
-            success: true,
-            sweet: updatedSweet
-        });
+        return sendSuccess(res, 200, { sweet: updatedSweet });
 
-    } catch (err) {
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error"
-        });
+    } catch {
+        return sendError(res, 500, "Internal server error");
     }
 };
 
@@ -122,21 +108,12 @@ export const deleteSweet = async (req, res) => {
         const deletedSweet = await Sweet.findByIdAndDelete(id);
 
         if (!deletedSweet) {
-            return res.status(404).json({
-                success: false,
-                message: "Sweet not found"
-            });
+            return sendError(res, 404, "Sweet not found");
         }
 
-        return res.status(200).json({
-            success: true,
-            message: "Sweet deleted successfully"
-        });
+        return sendSuccess(res, 200, { message: "Sweet deleted successfully" });
 
-    } catch (err) {
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error"
-        });
+    } catch {
+        return sendError(res, 500, "Internal server error");
     }
 };
