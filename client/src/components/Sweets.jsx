@@ -1,33 +1,37 @@
-import React, { useEffect, useState, useMemo, useCallback } from "react";
+import React, { useEffect, useMemo, useCallback } from "react";
 import { api } from "../hooks/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUser } from "../context/UserContext";
 
 const Sweets = () => {
-    const [sweets, setSweets] = useState([]);
-    const [currentPage, setCurrentPage] = useState(1);
-
-    const { setBuyOpen, setSelectedSweetId, user } = useUser();
-
-    const sweetsPerPage = 6;
+    const {
+        sweets,
+        setSweets,
+        setBuyOpen,
+        setSelectedSweetId,
+        user
+    } = useUser();
 
     const fetchSweets = useCallback(async () => {
         try {
             const res = await api.get("/sweet/");
             setSweets(res.data.sweets || []);
-        } catch (err) {
+        } catch {
             setSweets([]);
         }
-    }, []);
+    }, [setSweets]);
 
     useEffect(() => {
-        fetchSweets();
-    }, [fetchSweets]);
+        if (sweets.length === 0) fetchSweets();
+    }, [fetchSweets, sweets]);
 
     const safeSweets = useMemo(
         () => (Array.isArray(sweets) ? sweets : []),
         [sweets]
     );
+
+    const sweetsPerPage = 6;
+    const [currentPage, setCurrentPage] = React.useState(1);
 
     const indexOfLastSweet = currentPage * sweetsPerPage;
     const indexOfFirstSweet = indexOfLastSweet - sweetsPerPage;
@@ -57,9 +61,9 @@ const Sweets = () => {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.18 }}
-                            className="bg-white rounded-2xl shadow-md border border-gray-200 
-                        overflow-hidden transition-all hover:shadow-xl 
-                        hover:-translate-y-1 duration-200 flex flex-col h-[440px]"
+                            className="bg-white rounded-2xl shadow-md border border-gray-200
+                            overflow-hidden transition-all hover:shadow-xl hover:-translate-y-1 
+                            duration-200 flex flex-col h-[440px]"
                         >
                             <div className="relative w-full h-[200px] overflow-hidden">
                                 <img
@@ -91,16 +95,15 @@ const Sweets = () => {
                                     </div>
                                 </div>
 
-                                {/* Hide Buy Button for Admins */}
                                 {user?.role !== "admin" && (
                                     <button
                                         onClick={() => {
                                             setSelectedSweetId(sweet._id);
                                             setBuyOpen(true);
                                         }}
-                                        className="mt-auto w-full py-2.5 rounded-lg bg-black text-white text-base 
-                              font-medium hover:bg-gray-900 active:scale-95 transition-all 
-                              shadow-sm hover:shadow-md cursor-pointer"
+                                        className="mt-auto w-full py-2.5 rounded-lg bg-black text-white text-base
+                                        font-medium hover:bg-gray-900 active:scale-95 transition-all 
+                                        shadow-sm hover:shadow-md cursor-pointer"
                                     >
                                         Buy Now
                                     </button>
@@ -111,15 +114,14 @@ const Sweets = () => {
                 </AnimatePresence>
             </div>
 
-            {/* Pagination */}
             {totalPages > 1 && (
                 <div className="flex items-center justify-center gap-6 mt-12">
                     <button
                         onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                         disabled={currentPage === 1}
                         className={`px-6 py-2.5 rounded-lg text-white text-base font-medium transition
-              ${currentPage === 1 ? "bg-gray-400 cursor-not-allowed" : "bg-black hover:bg-gray-800"}
-            `}
+                        ${currentPage === 1 ? "bg-gray-400 cursor-not-allowed" : "bg-black hover:bg-gray-800"}
+                        `}
                     >
                         Previous
                     </button>
@@ -132,8 +134,8 @@ const Sweets = () => {
                         onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                         disabled={currentPage === totalPages}
                         className={`px-6 py-2.5 rounded-lg text-white text-base font-medium transition
-              ${currentPage === totalPages ? "bg-gray-400 cursor-not-allowed" : "bg-black hover:bg-gray-800"}
-            `}
+                        ${currentPage === totalPages ? "bg-gray-400 cursor-not-allowed" : "bg-black hover:bg-gray-800"}
+                        `}
                     >
                         Next
                     </button>

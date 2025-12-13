@@ -18,11 +18,14 @@
         |-- assets
         |-- components
             |-- About.jsx
+            |-- AddSweet.jsx
             |-- AdminDashboard.jsx
             |-- BuySweets.jsx
             |-- Footer.jsx
             |-- Header.jsx
+            |-- RestockSweet.jsx
             |-- Sweets.jsx
+            |-- UpdateSweet.jsx
             |-- UserAuth.jsx
         |-- context
             |-- UserContext.jsx
