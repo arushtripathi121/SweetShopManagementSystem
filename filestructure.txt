@@ -3,6 +3,9 @@
     |-- .gitignore
     |-- config
         |-- dbConnection.js
+    |-- models
+        |-- Sweet.js
+        |-- User.js
     |-- package-lock.json
     |-- package.json
     |-- server.js
