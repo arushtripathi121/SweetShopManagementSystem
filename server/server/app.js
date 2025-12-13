@@ -2,9 +2,10 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
-import authRouter from "../routes/authRoutes";
-import sweetRouter from "../routes/sweetRoutes";
-import inventoryRouter from "../routes/inventoryRoutes";
+import authRouter from "../routes/authRoutes.js";
+import sweetRouter from "../routes/sweetRoutes.js";
+import inventoryRouter from "../routes/inventoryRoutes.js";
+
 
 dotenv.config();
 
