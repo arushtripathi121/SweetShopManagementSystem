@@ -33,7 +33,7 @@ export const isAuthenticated = async (req, res, next) => {
         next();
 
     } catch (err) {
-        return res.status(401).json({
+        return res.status(500).json({
             success: false,
             message: "Authentication failed"
         });
