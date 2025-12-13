@@ -3,9 +3,19 @@
     |-- .gitignore
     |-- config
         |-- dbConnection.js
+    |-- controllers
+        |-- authController.js
+    |-- jest.config.js
     |-- models
         |-- Sweet.js
         |-- User.js
     |-- package-lock.json
     |-- package.json
-    |-- server.js
+    |-- routes
+        |-- authRoutes.js
+    |-- server
+        |-- app.js
+        |-- server.js
+    |-- tests
+        |-- auth.test.js
+        |-- setup.js
