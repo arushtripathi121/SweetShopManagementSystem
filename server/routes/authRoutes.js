@@ -8,7 +8,7 @@ const authRouter = express.Router();
 
 authRouter.post("/signup", SignUp);
 authRouter.post("/login", Login);
-authRouter.post("/logout", Logout);
+authRouter.get("/logout", Logout);
 
 authRouter.get("/me", isAuthenticated, (req, res) => {
     return res.status(200).json({
