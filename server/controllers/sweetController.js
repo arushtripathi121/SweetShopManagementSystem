@@ -14,14 +14,14 @@ const sendSuccess = (res, code, data = {}) => {
 
 // addSweet controller
 export const addSweet = async (req, res) => {
-    const { name, category, price, quantity } = req.body;
+    const { name, category, price, quantity, image } = req.body;
 
     try {
-        if (!name || !category || price == null || quantity == null) {
-            return sendError(res, 400, "All fields (name, category, price, quantity) are required");
+        if (!name || !category || price == null || quantity == null || !image) {
+            return sendError(res, 400, "All fields (name, category, price, quantity, image) are required");
         }
 
-        const sweet = await Sweet.create({ name, category, price, quantity });
+        const sweet = await Sweet.create({ name, category, price, quantity, image });
 
         return sendSuccess(res, 201, { sweet });
 
@@ -51,17 +51,14 @@ export const searchSweets = async (req, res) => {
         const { name, category, minPrice, maxPrice } = req.query;
         const filter = {};
 
-        // name match
         if (name) {
             filter.name = { $regex: name, $options: "i" };
         }
 
-        // category match
         if (category) {
             filter.category = { $regex: category, $options: "i" };
         }
 
-        // price filtering
         if (minPrice || maxPrice) {
             filter.price = {};
             if (minPrice) filter.price.$gte = Number(minPrice);
