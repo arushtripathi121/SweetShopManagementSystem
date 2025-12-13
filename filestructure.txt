@@ -1,3 +1,23 @@
+|-- client
+    |-- .gitignore
+    |-- eslint.config.js
+    |-- index.html
+    |-- package-lock.json
+    |-- package.json
+    |-- public
+    |-- README.md
+    |-- src
+        |-- App.css
+        |-- App.jsx
+        |-- assets
+        |-- components
+        |-- context
+            |-- UserContext.jsx
+        |-- index.css
+        |-- main.jsx
+        |-- pages
+            |-- HomePage.jsx
+    |-- vite.config.js
 |-- server
     |-- .env
     |-- .gitignore
