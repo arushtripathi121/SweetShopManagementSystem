@@ -1,27 +1,34 @@
 import Sweet from "../models/Sweet.js";
 
-// Helper: consistent error response
 const sendError = (res, code, message) => {
     return res.status(code).json({ success: false, message });
 };
 
-// Helper: wrap successful responses
 const sendSuccess = (res, code, data = {}) => {
     return res.status(code).json({ success: true, ...data });
 };
 
 
-
-// addSweet controller
+// ADD SWEET
 export const addSweet = async (req, res) => {
-    const { name, category, price, quantity, image } = req.body;
+    const { name, category, price, quantity, image, rating, description } = req.body;
 
     try {
         if (!name || !category || price == null || quantity == null || !image) {
-            return sendError(res, 400, "All fields (name, category, price, quantity, image) are required");
+            return sendError(res, 400,
+                "All fields (name, category, price, quantity, image) are required"
+            );
         }
 
-        const sweet = await Sweet.create({ name, category, price, quantity, image });
+        const sweet = await Sweet.create({
+            name,
+            category,
+            price,
+            quantity,
+            image,
+            rating: rating ?? 4.5,
+            description: description ?? "A delicious handcrafted sweet prepared using premium ingredients."
+        });
 
         return sendSuccess(res, 201, { sweet });
 
@@ -31,8 +38,7 @@ export const addSweet = async (req, res) => {
 };
 
 
-
-// getAllSweets controller
+// GET ALL SWEETS
 export const getAllSweets = async (req, res) => {
     try {
         const sweets = await Sweet.find();
@@ -44,20 +50,14 @@ export const getAllSweets = async (req, res) => {
 };
 
 
-
-// searchSweets controller
+// SEARCH SWEETS
 export const searchSweets = async (req, res) => {
     try {
         const { name, category, minPrice, maxPrice } = req.query;
         const filter = {};
 
-        if (name) {
-            filter.name = { $regex: name, $options: "i" };
-        }
-
-        if (category) {
-            filter.category = { $regex: category, $options: "i" };
-        }
+        if (name) filter.name = { $regex: name, $options: "i" };
+        if (category) filter.category = { $regex: category, $options: "i" };
 
         if (minPrice || maxPrice) {
             filter.price = {};
@@ -74,15 +74,16 @@ export const searchSweets = async (req, res) => {
 };
 
 
-
-// updateSweet controller
+// UPDATE SWEET
 export const updateSweet = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const updatedSweet = await Sweet.findByIdAndUpdate(id, req.body, {
-            new: true
-        });
+        const updatedSweet = await Sweet.findByIdAndUpdate(
+            id,
+            req.body,
+            { new: true }
+        );
 
         if (!updatedSweet) {
             return sendError(res, 404, "Sweet not found");
@@ -96,8 +97,7 @@ export const updateSweet = async (req, res) => {
 };
 
 
-
-// deleteSweet controller
+// DELETE SWEET
 export const deleteSweet = async (req, res) => {
     const { id } = req.params;
 
