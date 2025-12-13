@@ -264,18 +264,18 @@ describe("POST /api/v1/auth/login", () => {
 describe("POST /api/v1/auth/logout", () => {
 
     it("should clear the auth cookie and return 200", async () => {
-        const res = await request(app).post("/api/v1/auth/logout");
+        const res = await request(app).get("/api/v1/auth/logout");
         expect(res.status).toBe(200);
     });
 
     it("should expire the cookie immediately", async () => {
-        const res = await request(app).post("/api/v1/auth/logout");
+        const res = await request(app).get("/api/v1/auth/logout");
         const cookie = res.headers["set-cookie"][0];
         expect(cookie).toContain("Expires=");
     });
 
     it("should set empty userToken value", async () => {
-        const res = await request(app).post("/api/v1/auth/logout");
+        const res = await request(app).get("/api/v1/auth/logout");
         const cookie = res.headers["set-cookie"][0];
         expect(cookie.startsWith("userToken=")).toBe(true);
     });
