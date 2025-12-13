@@ -6,19 +6,19 @@
     |-- package-lock.json
     |-- package.json
     |-- public
+        |-- about1.jpg
+        |-- about2.jpg
+        |-- about3.jpg
+        |-- about4.png
         |-- logo.png
     |-- README.md
     |-- src
         |-- App.css
         |-- App.jsx
         |-- assets
-            |-- about1.jpg
-            |-- about2.jpg
-            |-- about3.jpg
-            |-- about4.png
-            |-- logo.png
         |-- components
             |-- About.jsx
+            |-- AdminDashboard.jsx
             |-- BuySweets.jsx
             |-- Footer.jsx
             |-- Header.jsx

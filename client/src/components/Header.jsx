@@ -1,10 +1,10 @@
 import React from 'react'
-import logo from '../assets/logo.png';
+import logo from '/logo.png';
 import { CiSearch, CiUser } from "react-icons/ci";
 import { useUser } from "../context/UserContext";
 
 const Header = () => {
-    const { setAuthOpen } = useUser();
+    const { setAuthOpen, isAdmin, setAdminDashboardOpen } = useUser();
 
     return (
         <header className="w-full bg-white font-poppins">
@@ -21,6 +21,16 @@ const Header = () => {
                         <li className="hover:text-black cursor-pointer transition">About</li>
                         <li className="hover:text-black cursor-pointer transition">Sweets</li>
                         <li className="hover:text-black cursor-pointer transition">Contact Us</li>
+
+                        {/* ONLY ADMINS SEE THIS */}
+                        {isAdmin && (
+                            <li
+                                className="hover:text-black cursor-pointer transition"
+                                onClick={() => setAdminDashboardOpen(true)}
+                            >
+                                Admin Panel
+                            </li>
+                        )}
                     </ul>
                 </nav>
 

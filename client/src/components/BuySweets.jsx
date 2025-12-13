@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { IoClose } from "react-icons/io5";
 import { FaStar } from "react-icons/fa";
@@ -7,31 +7,24 @@ import { api } from "../hooks/api";
 import { useUser } from "../context/UserContext";
 
 const BuySweets = () => {
-  const {
-    buyOpen,
-    setBuyOpen,
-    selectedSweetId,
-    user,
-    setAuthOpen
-  } = useUser();
+  const { buyOpen, setBuyOpen, selectedSweetId, user, setAuthOpen } = useUser();
 
   const [sweet, setSweet] = useState(null);
   const [loading, setLoading] = useState(false);
   const [qty, setQty] = useState(1);
   const [message, setMessage] = useState("");
 
-  const fetchSweet = async () => {
+  const fetchSweet = useCallback(async () => {
     if (!selectedSweetId) return;
 
     setLoading(true);
     try {
       const res = await api.get(`/sweet/${selectedSweetId}`);
       setSweet(res.data.sweet);
-    } catch {
-      setSweet(null);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  };
+  }, [selectedSweetId]);
 
   useEffect(() => {
     if (buyOpen) {
@@ -39,41 +32,42 @@ const BuySweets = () => {
       setMessage("");
       fetchSweet();
     }
-  }, [buyOpen]);
+  }, [buyOpen, fetchSweet]);
 
-  const increaseQty = () => {
+  const totalAmount = useMemo(
+    () => (sweet ? sweet.price * qty : 0),
+    [sweet, qty]
+  );
+
+  const increaseQty = useCallback(() => {
     if (!sweet) return;
 
     if (qty >= sweet.quantity) {
       setMessage(`You cannot choose more. Only ${sweet.quantity} kg available.`);
       return;
     }
-
     setQty(qty + 1);
     setMessage("");
-  };
+  }, [qty, sweet]);
 
-  const decreaseQty = () => {
+  const decreaseQty = useCallback(() => {
     if (qty > 1) {
       setQty(qty - 1);
       setMessage("");
     }
-  };
+  }, [qty]);
 
-  const totalAmount = sweet ? sweet.price * qty : 0;
-
-  const handlePurchase = async () => {
+  const handlePurchase = useCallback(async () => {
     try {
       const res = await api.post(`/inventory/${selectedSweetId}/purchase`, {
         quantity: qty
       });
-
       setMessage("Order Placed Successfully");
       setSweet(res.data.sweet);
     } catch (err) {
       setMessage(err.response?.data?.message || "Unable to place order");
     }
-  };
+  }, [qty, selectedSweetId]);
 
   return (
     <AnimatePresence>
@@ -83,15 +77,15 @@ const BuySweets = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: 0.18 }}
           className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[999]"
           onClick={() => setBuyOpen(false)}
         >
           <motion.div
-            initial={{ opacity: 0, scale: 0.93 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.25 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            transition={{ duration: 0.18 }}
             className="bg-white rounded-3xl w-[450px] max-w-[92%] p-7 shadow-2xl relative font-poppins"
             onClick={(e) => e.stopPropagation()}
           >
@@ -108,7 +102,6 @@ const BuySweets = () => {
               </div>
             ) : (
               <div className="space-y-7">
-
                 <div className="text-center">
                   <div className="text-3xl font-bold text-black">Checkout</div>
                   <div className="text-gray-500 mt-1 text-sm">
@@ -118,6 +111,7 @@ const BuySweets = () => {
 
                 <div className="bg-gray-100 rounded-2xl p-4 flex gap-4 shadow-inner">
                   <img
+                    loading="lazy"
                     src={sweet.image}
                     className="w-28 h-28 rounded-xl object-cover shadow"
                   />
@@ -140,6 +134,7 @@ const BuySweets = () => {
                   </div>
                 </div>
 
+                {/* Quantity Selector */}
                 {sweet.quantity > 0 ? (
                   <div className="bg-gray-100 rounded-2xl p-4 space-y-3">
                     <div className="flex items-center justify-between">
@@ -179,6 +174,7 @@ const BuySweets = () => {
                   </div>
                 )}
 
+                {/* Price Summary */}
                 <div className="bg-gray-100 rounded-2xl p-4 space-y-3">
                   <div className="flex justify-between text-gray-700 text-base">
                     <span>Item Price</span>
@@ -196,7 +192,12 @@ const BuySweets = () => {
                   </div>
                 </div>
 
-                {user ? (
+                {/* Admin Restriction */}
+                {user?.role === "admin" ? (
+                  <div className="w-full py-3.5 text-center font-semibold text-red-600">
+                    Admin accounts cannot place orders.
+                  </div>
+                ) : user ? (
                   <button
                     onClick={handlePurchase}
                     className="w-full py-3.5 rounded-2xl bg-black text-white text-lg font-semibold hover:bg-gray-900 active:scale-95 transition shadow-lg cursor-pointer"
@@ -216,9 +217,7 @@ const BuySweets = () => {
                 )}
 
                 {message && sweet.quantity > 0 && (
-                  <div className="text-center text-black font-medium mt-2">
-                    {message}
-                  </div>
+                  <div className="text-center text-black font-medium mt-2">{message}</div>
                 )}
               </div>
             )}

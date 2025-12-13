@@ -7,9 +7,12 @@ export const UserProvider = ({ children }) => {
     const [isAdmin, setIsAdmin] = useState(false);
     const [authOpen, setAuthOpen] = useState(false);
 
-    // NEW STATE FOR BUY MODAL
+    // BUY SWEETS STATE
     const [buyOpen, setBuyOpen] = useState(false);
     const [selectedSweetId, setSelectedSweetId] = useState(null);
+
+    // NEW ADMIN DASHBOARD STATE
+    const [adminDashboardOpen, setAdminDashboardOpen] = useState(false);
 
     return (
         <UserContext.Provider
@@ -18,7 +21,8 @@ export const UserProvider = ({ children }) => {
                 isAdmin, setIsAdmin,
                 authOpen, setAuthOpen,
                 buyOpen, setBuyOpen,
-                selectedSweetId, setSelectedSweetId
+                selectedSweetId, setSelectedSweetId,
+                adminDashboardOpen, setAdminDashboardOpen
             }}
         >
             {children}
