@@ -25,5 +25,6 @@
         |-- server.js
     |-- tests
         |-- auth.test.js
+        |-- inventory.test.js
         |-- setup.js
         |-- sweet.test.js
