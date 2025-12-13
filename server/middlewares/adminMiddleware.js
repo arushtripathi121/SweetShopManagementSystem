@@ -1,6 +1,12 @@
+// admin middleware
 export const isAdmin = (req, res, next) => {
-    return res.status(500).json({
+    // check if user role exists and is admin
+    if (req.user && req.user.role === "admin") {
+        return next();
+    }
+
+    return res.status(403).json({
         success: false,
-        message: "Admin middleware not implemented"
+        message: "Admin access only"
     });
 };
