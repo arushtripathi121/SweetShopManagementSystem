@@ -4,18 +4,19 @@ import { api } from "../hooks/api";
 import Header from "../components/Header";
 import UserAuth from "../components/UserAuth";
 import About from "../components/About";
+import Sweets from "../components/Sweets";
+import BuySweets from "../components/BuySweets";
+import Footer from "../components/Footer";
 
 const HomePage = () => {
-    const { user, setUser, isAdmin, setIsAdmin } = useUser();
-    console.log("Loaded Base URL:", import.meta.env.VITE_BASE_URL);
+    const { user, setUser, setIsAdmin } = useUser();
 
     const fetchUser = async () => {
         try {
             const response = await api.get("/auth/me");
-
             setUser(response.data.user);
             setIsAdmin(response.data.user.role === "admin");
-        } catch (err) {
+        } catch {
             console.log("User not logged in");
         }
     };
@@ -24,20 +25,16 @@ const HomePage = () => {
         fetchUser();
     }, []);
 
-    useEffect(() => {
-        console.log("User:", user);
-        console.log("isAdmin:", user?.role === "admin");
-        console.log(isAdmin);
-
-    }, [user]);
-
     return (
         <div>
             <Header />
             <UserAuth />
+            <BuySweets />
             <About />
+            <Sweets />
+            <Footer />
         </div>
-    )
+    );
 };
 
 export default HomePage;

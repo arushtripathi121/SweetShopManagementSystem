@@ -19,7 +19,10 @@
             |-- logo.png
         |-- components
             |-- About.jsx
+            |-- BuySweets.jsx
+            |-- Footer.jsx
             |-- Header.jsx
+            |-- Sweets.jsx
             |-- UserAuth.jsx
         |-- context
             |-- UserContext.jsx
@@ -30,8 +33,10 @@
         |-- pages
             |-- HomePage.jsx
     |-- tests
+        |-- BuySweets.test.jsx
         |-- HomePage.test.jsx
         |-- setup.js
+        |-- Sweets.test.jsx
     |-- vite.config.js
 |-- server
     |-- .env
