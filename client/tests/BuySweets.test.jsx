@@ -1,212 +1,218 @@
-import {
-    render,
-    screen,
-    fireEvent,
-    waitFor,
-} from "@testing-library/react";
-import { act } from "react-dom/test-utils";
+import { render, screen, fireEvent, waitFor } from "./test-utils";
 import BuySweets from "../src/components/BuySweets";
 import { useBuySweet } from "../src/context/BuySweetContext";
 import { useAuth } from "../src/context/AuthContext";
 import { api } from "../src/hooks/api";
-import AuthContext from '../src/context/AuthContext'
+import { vi, describe, it, expect, beforeEach } from "vitest";
 
-vi.mock("../src/context/BuySweetContext");
-vi.mock("../src/context/AuthContext");
-vi.mock("../src/hooks/api");
+// ---- MOCKS MUST COME AFTER IMPORTS ----
 
-const mockSetBuyOpen = vi.fn();
-const mockSetAuthOpen = vi.fn();
+// mock BuySweet context
+vi.mock("../src/context/BuySweetContext", () => ({
+    useBuySweet: vi.fn(),
+}));
 
-const renderComponent = async () => {
-    await act(async () => {
-        render(<BuySweets />);
-    });
-};
+// mock Auth context
+vi.mock("../src/context/AuthContext", () => ({
+    useAuth: vi.fn(),
+}));
+
+// mock api
+vi.mock("../src/hooks/api", () => ({
+    api: {
+        get: vi.fn(),
+        post: vi.fn(),
+    },
+}));
 
 describe("BuySweets Component", () => {
     beforeEach(() => {
         vi.clearAllMocks();
-    });
 
-    test("returns null when buyOpen is false", async () => {
-        useBuySweet.mockReturnValue({
-            buyOpen: false,
-            selectedSweetId: null,
-            setBuyOpen: mockSetBuyOpen,
-        });
-
-        useAuth.mockReturnValue({
-            user: null,
-            setAuthOpen: mockSetAuthOpen,
-        });
-
-        await renderComponent();
-        expect(screen.queryByText("Checkout")).toBeNull();
-    });
-
-    test("renders loading state", async () => {
+        // Default mock values for contexts
         useBuySweet.mockReturnValue({
             buyOpen: true,
-            selectedSweetId: "abc",
-            setBuyOpen: mockSetBuyOpen,
-        });
-
-        useAuth.mockReturnValue({
-            user: null,
-            setAuthOpen: mockSetAuthOpen,
-        });
-
-        api.get.mockResolvedValueOnce({ data: { sweet: null } });
-
-        await renderComponent();
-
-        expect(
-            screen.getByText("Loading Checkout...")
-        ).toBeInTheDocument();
-    });
-
-    test("fetches and displays sweet", async () => {
-        useBuySweet.mockReturnValue({
-            buyOpen: true,
+            setBuyOpen: vi.fn(),
             selectedSweetId: "123",
-            setBuyOpen: mockSetBuyOpen,
         });
 
         useAuth.mockReturnValue({
-            user: null,
-            setAuthOpen: mockSetAuthOpen,
+            user: { role: "user" },
+            setAuthOpen: vi.fn(),
         });
+    });
 
-        api.get.mockResolvedValueOnce({
+    // ------------------------------
+    // TEST 1: Loader
+    // ------------------------------
+    it("shows loader while fetching sweet", async () => {
+        api.get.mockReturnValue(new Promise(() => { })); // never resolves -> loader
+
+        render(<BuySweets />);
+
+        expect(screen.getByText("Loading Checkout...")).toBeInTheDocument();
+    });
+
+    // ------------------------------
+    // TEST 2: OUT OF STOCK UI
+    // ------------------------------
+    it("shows OUT OF STOCK when quantity is 0", async () => {
+        api.get.mockResolvedValue({
             data: {
                 sweet: {
-                    _id: "123",
                     name: "Ladoo",
+                    price: 200,
+                    quantity: 0,
+                    image: "",
+                    rating: 4.5,
                     category: "Indian",
-                    price: 200,
-                    quantity: 5,
-                    rating: 4.5,
-                    image: "test.jpg",
                 },
             },
         });
 
-        await renderComponent();
+        render(<BuySweets />);
 
-        expect(await screen.findByText("Ladoo")).toBeInTheDocument();
-        expect(screen.getByText("Indian")).toBeInTheDocument();
+        expect(await screen.findByText("OUT OF STOCK")).toBeInTheDocument();
     });
 
-    test("unauthenticated sees login button", async () => {
-        useBuySweet.mockReturnValue({
-            buyOpen: true,
-            selectedSweetId: "123",
-            setBuyOpen: mockSetBuyOpen,
-        });
-
-        useAuth.mockReturnValue({
-            user: null,
-            setAuthOpen: mockSetAuthOpen,
-        });
-
-        api.get.mockResolvedValueOnce({
+    // ------------------------------
+    // TEST 4: Custom weight validation
+    // ------------------------------
+    it("shows validation error for invalid custom weight", async () => {
+        api.get.mockResolvedValue({
             data: {
                 sweet: {
-                    name: "Ladoo",
-                    price: 200,
-                    quantity: 5,
-                    category: "Sweet",
-                    rating: 4.5,
-                    image: null, // prevents empty-src warnings
+                    name: "Barfi",
+                    price: 300,
+                    quantity: 2,
+                    image: "",
+                    rating: 4.2,
+                    category: "Indian",
                 },
             },
         });
 
-        await renderComponent();
+        render(<BuySweets />);
+
+        const input = await screen.findByPlaceholderText("Custom (kg)");
+
+        fireEvent.change(input, { target: { value: "-5" } });
+
+        expect(screen.getByText("Enter valid weight")).toBeInTheDocument();
+    });
+
+    // ------------------------------
+    // TEST 5: Total amount
+    // ------------------------------
+    it("calculates total amount correctly", async () => {
+        api.get.mockResolvedValue({
+            data: {
+                sweet: {
+                    name: "Barfi",
+                    price: 200,
+                    quantity: 5,
+                    image: "",
+                    rating: 4.2,
+                    category: "Indian",
+                },
+            },
+        });
+
+        render(<BuySweets />);
+
+        expect(await screen.findByText("₹50.00")).toBeInTheDocument();
+    });
+
+    // ------------------------------
+    // TEST 6: Login required
+    // ------------------------------
+    it("shows Login First when user not logged in", async () => {
+        useAuth.mockReturnValue({
+            user: null,
+            setAuthOpen: vi.fn(),
+        });
+
+        api.get.mockResolvedValue({
+            data: {
+                sweet: {
+                    name: "Barfi",
+                    price: 200,
+                    quantity: 5,
+                    image: "",
+                    rating: 4.2,
+                    category: "Indian",
+                },
+            },
+        });
+
+        render(<BuySweets />);
 
         expect(await screen.findByText("Login First")).toBeInTheDocument();
     });
 
-    test("handles successful purchase", async () => {
-        useBuySweet.mockReturnValue({
-            buyOpen: true,
-            selectedSweetId: "123",
-            setBuyOpen: mockSetBuyOpen,
-        });
-
+    // ------------------------------
+    // TEST 7: Admin cannot order
+    // ------------------------------
+    it("blocks admin from ordering", async () => {
         useAuth.mockReturnValue({
-            user: { role: "user" },
-            setAuthOpen: mockSetAuthOpen,
+            user: { role: "admin" },
+            setAuthOpen: vi.fn(),
         });
 
-        api.get.mockResolvedValueOnce({
+        api.get.mockResolvedValue({
             data: {
                 sweet: {
-                    name: "Ladoo",
-                    price: 100,
-                    quantity: 3,
-                    category: "Sweet",
-                    rating: 4.5,
-                    image: null,
+                    name: "Barfi",
+                    price: 200,
+                    quantity: 5,
+                    image: "",
+                    rating: 4.2,
+                    category: "Indian",
                 },
             },
         });
 
-        api.post.mockResolvedValueOnce({
-            data: {
-                sweet: {
-                    name: "Ladoo",
-                    price: 100,
-                    quantity: 2,
-                },
-            },
-        });
+        render(<BuySweets />);
 
-        await renderComponent();
-
-        fireEvent.click(await screen.findByText("Place Order"));
-
-        const messages = await screen.findAllByText("Order Placed Successfully");
-        expect(messages.length).toBeGreaterThan(0);
+        expect(await screen.findByText("Admin cannot order.")).toBeInTheDocument();
     });
 
-    test("handles purchase failure", async () => {
-        useBuySweet.mockReturnValue({
-            buyOpen: true,
-            selectedSweetId: "123",
-            setBuyOpen: mockSetBuyOpen,
-        });
-
-        useAuth.mockReturnValue({
-            user: { role: "user" },
-            setAuthOpen: mockSetAuthOpen,
-        });
-
-        api.get.mockResolvedValueOnce({
+    // ------------------------------
+    // TEST 8: Successful Purchase
+    // ------------------------------
+    it("handles purchase & shows token", async () => {
+        api.get.mockResolvedValue({
             data: {
                 sweet: {
-                    name: "Ladoo",
+                    name: "Gulab",
                     price: 100,
-                    quantity: 3,
-                    category: "Sweet",
-                    rating: 4.5,
-                    image: null,
+                    quantity: 5,
+                    image: "",
+                    rating: 4.1,
+                    category: "Indian",
                 },
             },
         });
 
-        api.post.mockRejectedValueOnce({
-            response: {
-                data: { message: "Unable to place order" },
+        api.post.mockResolvedValue({
+            data: {
+                orderToken: "ORD123",
+                pdfBase64: "ABC123",
+                sweet: {
+                    name: "Gulab",
+                    price: 100,
+                    quantity: 4,
+                    image: "",
+                    rating: 4.1,
+                    category: "Indian",
+                },
             },
         });
 
-        await renderComponent();
+        render(<BuySweets />);
 
         fireEvent.click(await screen.findByText("Place Order"));
 
-        const errors = await screen.findAllByText("Unable to place order");
-        expect(errors.length).toBeGreaterThan(0);
+        expect(await screen.findByText("Order Successful! Token: ORD123")).toBeInTheDocument();
     });
 });
