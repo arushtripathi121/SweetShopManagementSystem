@@ -28,6 +28,10 @@
             |-- UpdateSweet.jsx
             |-- UserAuth.jsx
         |-- context
+            |-- AdminContext.jsx
+            |-- AppProviders.jsx
+            |-- AuthContext.jsx
+            |-- BuySweetContext.jsx
             |-- UserContext.jsx
         |-- hooks
             |-- api.js
@@ -36,10 +40,10 @@
         |-- pages
             |-- HomePage.jsx
     |-- tests
-        |-- BuySweets.test.jsx
-        |-- HomePage.test.jsx
+        |-- AdminDashboard.test.jsx
         |-- setup.js
-        |-- Sweets.test.jsx
+        |-- test-utils.js
+        |-- UserAuth.test.jsx
     |-- vite.config.js
 |-- server
     |-- .env
