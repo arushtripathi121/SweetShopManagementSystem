@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { IoClose } from "react-icons/io5";
-import { useUser } from "../context/UserContext";
+import { useAdmin } from "../context/AdminContext";
 
 const UpdateSweet = () => {
-    const { updateOpen, setUpdateOpen, updateSweetData } = useUser();
+    const { updateOpen, setUpdateOpen, updateSweetData } = useAdmin();
 
     if (!updateOpen || !updateSweetData) return null;
 
@@ -24,7 +24,7 @@ const UpdateSweet = () => {
 
     const handleSubmit = () => {
         console.log("Updated Sweet:", form);
-        // Later: Call API & update context
+        // later: call API & refresh admin list
         setUpdateOpen(false);
     };
 
@@ -41,7 +41,6 @@ const UpdateSweet = () => {
                 exit={{ scale: 0.9 }}
                 className="bg-white p-6 rounded-xl w-[420px] relative font-poppins max-h-[90vh] overflow-y-auto"
             >
-                {/* Close Button */}
                 <button
                     onClick={() => setUpdateOpen(false)}
                     className="absolute top-3 right-3 text-2xl text-gray-600 hover:text-black"
@@ -49,11 +48,8 @@ const UpdateSweet = () => {
                     <IoClose />
                 </button>
 
-                <h2 className="text-2xl font-bold mb-5 text-black">
-                    Update Sweet
-                </h2>
+                <h2 className="text-2xl font-bold mb-5 text-black">Update Sweet</h2>
 
-                {/* NAME */}
                 <label className="block text-gray-700 font-medium mb-1">Name</label>
                 <input
                     type="text"
@@ -62,7 +58,6 @@ const UpdateSweet = () => {
                     className="w-full p-3 border rounded mb-4"
                 />
 
-                {/* CATEGORY */}
                 <label className="block text-gray-700 font-medium mb-1">Category</label>
                 <input
                     type="text"
@@ -71,7 +66,6 @@ const UpdateSweet = () => {
                     className="w-full p-3 border rounded mb-4"
                 />
 
-                {/* PRICE */}
                 <label className="block text-gray-700 font-medium mb-1">Price (₹)</label>
                 <input
                     type="number"
@@ -80,7 +74,6 @@ const UpdateSweet = () => {
                     className="w-full p-3 border rounded mb-4"
                 />
 
-                {/* QUANTITY */}
                 <label className="block text-gray-700 font-medium mb-1">Quantity (kg)</label>
                 <input
                     type="number"
@@ -89,7 +82,6 @@ const UpdateSweet = () => {
                     className="w-full p-3 border rounded mb-4"
                 />
 
-                {/* RATING */}
                 <label className="block text-gray-700 font-medium mb-1">Rating</label>
                 <input
                     type="number"
@@ -101,7 +93,6 @@ const UpdateSweet = () => {
                     className="w-full p-3 border rounded mb-4"
                 />
 
-                {/* IMAGE URL */}
                 <label className="block text-gray-700 font-medium mb-1">Image URL</label>
                 <input
                     type="text"
@@ -110,17 +101,13 @@ const UpdateSweet = () => {
                     className="w-full p-3 border rounded mb-4"
                 />
 
-                {/* DESCRIPTION */}
-                <label className="block text-gray-700 font-medium mb-1">
-                    Description
-                </label>
+                <label className="block text-gray-700 font-medium mb-1">Description</label>
                 <textarea
                     value={form.description}
                     onChange={(e) => updateField("description", e.target.value)}
                     className="w-full p-3 border rounded mb-4 h-24 resize-none"
                 />
 
-                {/* SUBMIT */}
                 <button
                     onClick={handleSubmit}
                     className="w-full py-3 bg-black text-white rounded-lg hover:bg-gray-900 transition"
