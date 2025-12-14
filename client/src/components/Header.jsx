@@ -1,10 +1,13 @@
-import React from 'react'
+import React from 'react';
 import logo from '/logo.png';
 import { CiSearch, CiUser } from "react-icons/ci";
-import { useUser } from "../context/UserContext";
+
+import { useAuth } from "../context/AuthContext";
+import { useAdmin } from "../context/AdminContext";
 
 const Header = () => {
-    const { setAuthOpen, isAdmin, setAdminDashboardOpen } = useUser();
+    const { setAuthOpen, isAdmin } = useAuth();
+    const { setAdminDashboardOpen } = useAdmin();
 
     return (
         <header className="w-full bg-white font-poppins">
