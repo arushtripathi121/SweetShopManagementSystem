@@ -92,7 +92,6 @@ const Header = () => {
 
                 {/* Desktop User Icon */}
                 <div className="hidden md:flex items-center gap-4 text-2xl text-gray-700">
-                    <CiSearch className="hover:text-black cursor-pointer" />
                     <CiUser
                         className="hover:text-black cursor-pointer"
                         onClick={() => setAuthOpen(true)}
