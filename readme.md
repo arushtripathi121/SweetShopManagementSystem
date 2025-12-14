@@ -17,9 +17,11 @@ A MERN-stack single-page application designed to manage and maintain sweet shop 
 ## Test Result File
 
 ##### Client
+
 ![alt text](<images/Screenshot 2025-12-14 164253.png>)
 
 ##### Server
+
 ![alt text](images/image-8.png)
 ![alt text](images/image-9.png)'
 ![alt text](images/image-10.png)
@@ -50,16 +52,24 @@ A MERN-stack single-page application designed to manage and maintain sweet shop 
 - Backend and frontend logic fully tested.
 - Pagination for fast sweet browsing.
 - Cookie-based JWT authentication for secure sessions.
+
 ### Application Screenshots
+
 #### Admin Login Screenshots
+
 ![alt text](images/image-7.png)
 ![alt text](images/image-1.png)
 ![alt text](images/image-2.png)
+
 #### Login page
+
 ![alt text](images/image-3.png)
+
 #### User Login Screenshots
+
 ![alt text](images/image-6.png)
 ![alt text](images/image-5.png)
+
 ## API Endpoints
 
 ### User APIs
@@ -147,22 +157,39 @@ Users may create their own accounts for testing.
 
 #### Backend Development
 
-- Generated backend test case structures for authentication, sweets, and inventory.
+- Used AI to generate structured templates for backend test cases, including authentication, sweet management, and inventory operations.
+- Leveraged AI to validate API design flow and ensure consistent request/response patterns.
+- Utilized AI for alternative logic suggestions during debugging, helping uncover edge cases without modifying core logic.
 
 #### Frontend Development
 
-- Generated logical test case formats.
-- Improved UI structure and responsiveness.
-- All business logic and core code were manually written.
+- Generated initial logical test case formats to maintain consistent UI component validation.
+- Used AI for UI/UX refinement, including enhancements in spacing, layout hierarchy, and responsiveness.
+- Received suggestions for improving state management flow and responsive design techniques.
+- All functional logic, component behavior, hooks, and state-flow implementations were written manually; AI was used only for refinement.
 
 #### Documentation
 
-- Assisted in formatting and refining documentation, including this README.
+- AI assisted in restructuring and formatting documentation to improve clarity and readability.
+- Helped summarize complex explanations for developer-friendly documentation.
+- Improved grammar, tone, formatting, and overall presentation while keeping the content technically accurate.
+
+---
 
 ### Reflection on AI Impact
 
-- Faster test-case creation.
-- Better UI layout suggestions.
-- Helpful debugging through alternate perspectives.
-- Cleaner and more professional documentation.
-- Core logic remained fully handwritten for accuracy and control.
+- **Faster Test Case Creation**  
+  AI reduced time spent drafting test structures, allowing more focus on implementation and debugging.
+
+- **Improved UI Consistency**  
+  Visual suggestions helped refine layout, spacing, and responsiveness, contributing to a polished frontend design.
+
+- **Better Debugging Through External Perspectives**  
+  AI offered alternative approaches that helped identify bugs and logic gaps more efficiently.
+
+- **Enhanced Documentation Quality**  
+  The README and internal documentation became clearer, more professional, and easier to maintain.
+
+- **Full Control Over Core Logic**  
+  All core backend logic, frontend logic, and architectural decisions were manually written for accuracy and reliability.  
+  AI served purely as a supportive tool for formatting, refining, and guiding—not for generating core implementation code.
