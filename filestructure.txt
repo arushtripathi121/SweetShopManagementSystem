@@ -1,6 +1,9 @@
 |-- client
     |-- .env
     |-- .gitignore
+    |-- .vercel
+        |-- project.json
+        |-- README.txt
     |-- eslint.config.js
     |-- index.html
     |-- package-lock.json
@@ -52,6 +55,9 @@
 |-- server
     |-- .env
     |-- .gitignore
+    |-- .vercel
+        |-- project.json
+        |-- README.txt
     |-- config
         |-- dbConnection.js
     |-- controllers
@@ -79,3 +85,4 @@
         |-- inventory.test.js
         |-- setup.js
         |-- sweet.test.js
+    |-- vercel.json

@@ -1,0 +1,53 @@
+|-- .env
+|-- .gitignore
+|-- .vercel
+    |-- project.json
+    |-- README.txt
+|-- eslint.config.js
+|-- index.html
+|-- package-lock.json
+|-- package.json
+|-- public
+    |-- about1.jpg
+    |-- about2.jpg
+    |-- about3.jpg
+    |-- about4.png
+    |-- logo.png
+|-- README.md
+|-- src
+    |-- App.css
+    |-- App.jsx
+    |-- assets
+    |-- components
+        |-- About.jsx
+        |-- AddSweet.jsx
+        |-- AdminDashboard.jsx
+        |-- BuySweets.jsx
+        |-- Footer.jsx
+        |-- Header.jsx
+        |-- RestockSweet.jsx
+        |-- Sweets.jsx
+        |-- UpdateSweet.jsx
+        |-- UserAuth.jsx
+    |-- context
+        |-- AdminContext.jsx
+        |-- AppProviders.jsx
+        |-- AuthContext.jsx
+        |-- BuySweetContext.jsx
+        |-- UserContext.jsx
+    |-- hooks
+        |-- api.js
+    |-- index.css
+    |-- main.jsx
+    |-- pages
+        |-- HomePage.jsx
+|-- tests
+    |-- AddSweet.test.jsx
+    |-- AdminDashboard.test.jsx
+    |-- BuySweets.test.jsx
+    |-- RestockSweet.test.jsx
+    |-- setup.js
+    |-- test-utils.js
+    |-- UpdateSweet.test.jsx
+    |-- UserAuth.test.jsx
+|-- vite.config.js

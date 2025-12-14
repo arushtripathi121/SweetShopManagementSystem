@@ -1,0 +1,33 @@
+|-- .env
+|-- .gitignore
+|-- .vercel
+    |-- project.json
+    |-- README.txt
+|-- config
+    |-- dbConnection.js
+|-- controllers
+    |-- authController.js
+    |-- inventoryController.js
+    |-- sweetController.js
+|-- jest.config.mjs
+|-- middlewares
+    |-- adminMiddleware.js
+    |-- authMiddleware.js
+|-- models
+    |-- Sweet.js
+    |-- User.js
+|-- package-lock.json
+|-- package.json
+|-- routes
+    |-- authRoutes.js
+    |-- inventoryRoutes.js
+    |-- sweetRoutes.js
+|-- server
+    |-- app.js
+    |-- server.js
+|-- tests
+    |-- auth.test.js
+    |-- inventory.test.js
+    |-- setup.js
+    |-- sweet.test.js
+|-- vercel.json
