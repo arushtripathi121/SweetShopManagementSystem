@@ -41,13 +41,25 @@ export const addSweet = async (req, res) => {
 // GET ALL SWEETS
 export const getAllSweets = async (req, res) => {
     try {
-        const sweets = await Sweet.find();
-        return sendSuccess(res, 200, { sweets });
+        const page = parseInt(req.query.page) || 1;
+        const limit = 6;
+        const skip = (page - 1) * limit;
+
+        const sweets = await Sweet.find().skip(skip).limit(limit);
+        const total = await Sweet.countDocuments();
+
+        return sendSuccess(res, 200, {
+            sweets,
+            currentPage: page,
+            totalPages: Math.ceil(total / limit),
+            totalItems: total
+        });
 
     } catch {
         return sendError(res, 500, "Internal server error");
     }
 };
+
 
 
 // SEARCH SWEETS
