@@ -9,6 +9,7 @@ vi.mock("framer-motion", () => ({
     motion: {
         div: ({ children, ...rest }) => <div {...rest}>{children}</div>,
     },
+    AnimatePresence: ({ children }) => <div>{children}</div>,
 }));
 
 // Mock Context
@@ -30,8 +31,7 @@ beforeEach(() => {
     vi.clearAllMocks();
 });
 
-const renderComponent = () =>
-    render(<RestockSweet refresh={mockRefresh} />);
+const renderComponent = () => render(<RestockSweet refresh={mockRefresh} />);
 
 describe("RestockSweet Component", () => {
 
@@ -50,13 +50,14 @@ describe("RestockSweet Component", () => {
         useAdmin.mockReturnValue({
             restockOpen: true,
             setRestockOpen: mockSetRestockOpen,
-            restockData: { _id: "123" },
+            restockData: { _id: "123", name: "Kaju Katli" },
         });
 
         renderComponent();
 
         expect(screen.getByText("Restock Sweet")).toBeInTheDocument();
-        expect(screen.getByPlaceholderText("Quantity")).toBeInTheDocument();
+        expect(screen.getByPlaceholderText("Add Quantity (kg)")).toBeInTheDocument();
+        expect(screen.getByText("Kaju Katli")).toBeInTheDocument();
     });
 
     it("updates quantity input", () => {
@@ -68,7 +69,7 @@ describe("RestockSweet Component", () => {
 
         renderComponent();
 
-        const input = screen.getByPlaceholderText("Quantity");
+        const input = screen.getByPlaceholderText("Add Quantity (kg)");
 
         fireEvent.change(input, { target: { value: "10" } });
 
@@ -86,7 +87,7 @@ describe("RestockSweet Component", () => {
 
         renderComponent();
 
-        fireEvent.change(screen.getByPlaceholderText("Quantity"), {
+        fireEvent.change(screen.getByPlaceholderText("Add Quantity (kg)"), {
             target: { value: "5" },
         });
 
@@ -103,7 +104,7 @@ describe("RestockSweet Component", () => {
         expect(mockSetRestockOpen).toHaveBeenCalledWith(false);
     });
 
-    it("closes modal when clicking X icon", () => {
+    it("closes modal when clicking close button", () => {
         useAdmin.mockReturnValue({
             restockOpen: true,
             setRestockOpen: mockSetRestockOpen,
@@ -112,9 +113,11 @@ describe("RestockSweet Component", () => {
 
         renderComponent();
 
-        const closeIcon = screen.getByTestId("close-restock");
+        const buttons = screen.getAllByRole("button");
 
-        fireEvent.click(closeIcon);
+        const closeButton = buttons[0]; // first button is close icon
+
+        fireEvent.click(closeButton);
 
         expect(mockSetRestockOpen).toHaveBeenCalledWith(false);
     });

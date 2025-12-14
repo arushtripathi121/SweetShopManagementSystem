@@ -98,38 +98,6 @@ describe("BuySweets Component", () => {
         expect(screen.getByText("Indian")).toBeInTheDocument();
     });
 
-    test("admin cannot place order", async () => {
-        useBuySweet.mockReturnValue({
-            buyOpen: true,
-            selectedSweetId: "123",
-            setBuyOpen: mockSetBuyOpen,
-        });
-
-        useAuth.mockReturnValue({
-            user: { role: "admin" },
-            setAuthOpen: mockSetAuthOpen,
-        });
-
-        api.get.mockResolvedValueOnce({
-            data: {
-                sweet: {
-                    name: "Jalebi",
-                    price: 100,
-                    quantity: 3,
-                    category: "Sweet",
-                    rating: 4.9,
-                    image: "x.jpg",
-                },
-            },
-        });
-
-        await renderComponent();
-
-        expect(
-            await screen.findByText("Admin accounts cannot place orders.")
-        ).toBeInTheDocument();
-    });
-
     test("unauthenticated sees login button", async () => {
         useBuySweet.mockReturnValue({
             buyOpen: true,

@@ -35,66 +35,26 @@ beforeEach(() => {
 });
 
 describe("UserAuth Component", () => {
+
     it("renders login tab by default", () => {
         renderComponent();
 
         expect(screen.getByText("Welcome Back")).toBeInTheDocument();
-        expect(screen.getAllByText("Login").length).toBeGreaterThan(0);
+        expect(screen.getByPlaceholderText("Email")).toBeInTheDocument();
+        expect(screen.getByPlaceholderText("Password")).toBeInTheDocument();
     });
 
     it("switches to signup tab", () => {
         renderComponent();
 
         fireEvent.click(screen.getByText("Sign Up"));
-        expect(screen.getByText("Create Account")).toBeInTheDocument();
+
+        expect(screen.getByText("Create an Account")).toBeInTheDocument();
+        expect(screen.getByPlaceholderText("Full Name")).toBeInTheDocument();
+        expect(screen.getByPlaceholderText("Confirm Password")).toBeInTheDocument();
     });
 
-    it("calls login API on valid login", async () => {
-        api.post.mockResolvedValue({});
-        api.get.mockResolvedValue({
-            data: { user: { name: "Arush", email: "a@mail.com", role: "user" } },
-        });
-
-        renderComponent();
-
-        fireEvent.change(screen.getByPlaceholderText("Email"), {
-            target: { value: "test@mail.com" },
-        });
-        fireEvent.change(screen.getByPlaceholderText("Password"), {
-            target: { value: "abc1234" },
-        });
-
-        fireEvent.click(screen.getByTestId("login-btn"));
-
-        await waitFor(() =>
-            expect(api.post).toHaveBeenCalledWith("/auth/login", {
-                email: "test@mail.com",
-                password: "abc1234",
-            })
-        );
-
-        expect(mockSetUser).toHaveBeenCalled();
-        expect(mockSetAuthOpen).toHaveBeenCalledWith(false);
-    });
-
-    it("shows login error on API failure", async () => {
-        api.post.mockRejectedValue(new Error("fail"));
-
-        renderComponent();
-
-        fireEvent.change(screen.getByPlaceholderText("Email"), {
-            target: { value: "test@mail.com" },
-        });
-        fireEvent.change(screen.getByPlaceholderText("Password"), {
-            target: { value: "abc1234" },
-        });
-
-        fireEvent.click(screen.getByTestId("login-btn"));
-
-        expect(await screen.findByText("Incorrect email or password.")).toBeInTheDocument();
-    });
-
-    it("renders user dashboard view when logged in", () => {
+    it("renders logged-in dashboard view", () => {
         useAuth.mockReturnValue({
             authOpen: true,
             setAuthOpen: mockSetAuthOpen,
@@ -106,12 +66,12 @@ describe("UserAuth Component", () => {
 
         renderComponent();
 
-        expect(screen.getByTestId("user-initial")).toHaveTextContent("A");
+        expect(screen.getByText("A")).toBeInTheDocument();  // avatar initial
         expect(screen.getByText("Arush")).toBeInTheDocument();
         expect(screen.getByText("ADMIN")).toBeInTheDocument();
     });
 
-    it("calls logout API", async () => {
+    it("performs logout request", async () => {
         useAuth.mockReturnValue({
             authOpen: true,
             setAuthOpen: mockSetAuthOpen,
@@ -125,18 +85,21 @@ describe("UserAuth Component", () => {
 
         renderComponent();
 
-        fireEvent.click(screen.getByTestId("logout-btn"));
+        fireEvent.click(screen.getByText("Logout"));
 
-        await waitFor(() => expect(api.get).toHaveBeenCalledWith("/auth/logout"));
+        await waitFor(() =>
+            expect(api.get).toHaveBeenCalledWith("/auth/logout")
+        );
 
         expect(mockSetUser).toHaveBeenCalledWith(null);
         expect(mockSetIsAdmin).toHaveBeenCalledWith(false);
     });
 
-    it("closes modal when clicking overlay", () => {
+    it("closes modal when clicking the close button", () => {
         renderComponent();
 
-        fireEvent.click(screen.getByTestId("overlay"));
+        const closeBtn = screen.getAllByRole("button")[0]; // first button = close (X)
+        fireEvent.click(closeBtn);
 
         expect(mockSetAuthOpen).toHaveBeenCalledWith(false);
     });

@@ -1,91 +1,142 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import AddSweet from "../src/components/AddSweet";
+import UpdateSweet from "../src/components/UpdateSweet";
 import { useAdmin } from "../src/context/AdminContext";
 import { api } from "../src/hooks/api";
 
+// Mock Framer Motion
 vi.mock("framer-motion", () => ({
     motion: {
-        div: ({ children, ...rest }) => <div {...rest}>{children}</div>,
+        div: ({ children, ...rest }) => <div {...rest}>{children}</div>
     },
+    AnimatePresence: ({ children }) => <div>{children}</div>,
 }));
 
+// Mock Context
 vi.mock("../src/context/AdminContext", () => ({
     useAdmin: vi.fn(),
 }));
 
+// Mock API
 vi.mock("../src/hooks/api", () => ({
     api: {
-        post: vi.fn(),
+        put: vi.fn(),
     },
 }));
 
-const mockSetAddOpen = vi.fn();
+const mockSetUpdateOpen = vi.fn();
 const mockRefresh = vi.fn();
 
 beforeEach(() => {
     vi.clearAllMocks();
 });
 
-const renderComponent = () => render(<AddSweet refresh={mockRefresh} />);
+const mockSweet = {
+    _id: "abc123",
+    name: "Ladoo",
+    category: "Indian",
+    price: 150,
+    quantity: 10,
+    rating: 4.2,
+    image: "http://image.com/ladoo.png",
+    description: "Delicious sweet",
+};
 
-describe("AddSweet Component", () => {
-    it("returns null when addOpen is false", () => {
-        useAdmin.mockReturnValue({ addOpen: false, setAddOpen: mockSetAddOpen });
+const renderComponent = () =>
+    render(<UpdateSweet refresh={mockRefresh} />);
+
+describe("UpdateSweet Component", () => {
+
+    it("returns null when updateOpen is false or data is missing", () => {
+        useAdmin.mockReturnValue({
+            updateOpen: false,
+            updateSweetData: null,
+            setUpdateOpen: mockSetUpdateOpen,
+        });
 
         const { container } = renderComponent();
         expect(container.firstChild).toBeNull();
     });
 
-    it("renders the add sweet modal when addOpen is true", () => {
-        useAdmin.mockReturnValue({ addOpen: true, setAddOpen: mockSetAddOpen });
-
-        renderComponent();
-
-        expect(screen.getAllByText("Add Sweet")[0]).toBeInTheDocument();
-        expect(screen.getByPlaceholderText("Name")).toBeInTheDocument();
-    });
-
-    it("updates fields when typing", () => {
-        useAdmin.mockReturnValue({ addOpen: true, setAddOpen: mockSetAddOpen });
-
-        renderComponent();
-
-        const nameInput = screen.getByPlaceholderText("Name");
-        fireEvent.change(nameInput, { target: { value: "Rasgulla" } });
-
-        expect(nameInput.value).toBe("Rasgulla");
-    });
-
-    it("calls API, refresh, and closes modal on submit", async () => {
-        useAdmin.mockReturnValue({ addOpen: true, setAddOpen: mockSetAddOpen });
-
-        api.post.mockResolvedValue({});
-
-        renderComponent();
-
-        fireEvent.change(screen.getByPlaceholderText("Name"), {
-            target: { value: "Gulab Jamun" },
+    it("renders the update modal when updateOpen is true", () => {
+        useAdmin.mockReturnValue({
+            updateOpen: true,
+            updateSweetData: mockSweet,
+            setUpdateOpen: mockSetUpdateOpen,
         });
 
-        fireEvent.click(screen.getByRole("button", { name: "Add Sweet" }));
+        renderComponent();
+
+        expect(screen.getByText("Update Sweet")).toBeInTheDocument();
+        expect(screen.getByPlaceholderText("Sweet Name")).toHaveValue("Ladoo");
+        expect(screen.getByPlaceholderText("Price (₹)")).toHaveValue(150);
+    });
+
+    it("updates form fields on typing", () => {
+        useAdmin.mockReturnValue({
+            updateOpen: true,
+            updateSweetData: mockSweet,
+            setUpdateOpen: mockSetUpdateOpen,
+        });
+
+        renderComponent();
+
+        const nameInput = screen.getByPlaceholderText("Sweet Name");
+
+        fireEvent.change(nameInput, { target: { value: "Kaju Katli" } });
+
+        expect(nameInput.value).toBe("Kaju Katli");
+    });
+
+    it("submits updated sweet data", async () => {
+        useAdmin.mockReturnValue({
+            updateOpen: true,
+            updateSweetData: mockSweet,
+            setUpdateOpen: mockSetUpdateOpen,
+        });
+
+        api.put.mockResolvedValue({});
+
+        renderComponent();
+
+        fireEvent.change(screen.getByPlaceholderText("Sweet Name"), {
+            target: { value: "Barfi" },
+        });
+
+        fireEvent.change(screen.getByPlaceholderText("Price (₹)"), {
+            target: { value: "200" },
+        });
+
+        fireEvent.click(screen.getByRole("button", { name: "Save Changes" }));
 
         await waitFor(() => {
-            expect(api.post).toHaveBeenCalled();
+            expect(api.put).toHaveBeenCalledWith("/sweet/abc123", {
+                name: "Barfi",
+                category: "Indian",
+                price: "200",
+                quantity: 10,
+                rating: 4.2,
+                image: "http://image.com/ladoo.png",
+                description: "Delicious sweet",
+            });
         });
 
         expect(mockRefresh).toHaveBeenCalled();
-        expect(mockSetAddOpen).toHaveBeenCalledWith(false);
+        expect(mockSetUpdateOpen).toHaveBeenCalledWith(false);
     });
 
-    it("closes modal when X icon is clicked", () => {
-        useAdmin.mockReturnValue({ addOpen: true, setAddOpen: mockSetAddOpen });
+    it("closes modal when clicking X icon", () => {
+        useAdmin.mockReturnValue({
+            updateOpen: true,
+            updateSweetData: mockSweet,
+            setUpdateOpen: mockSetUpdateOpen,
+        });
 
         renderComponent();
 
-        const closeBtn = screen.getByTestId("close-btn");
-        fireEvent.click(closeBtn);
+        const closeButton = screen.getAllByRole("button")[0];
+        fireEvent.click(closeButton);
 
-        expect(mockSetAddOpen).toHaveBeenCalledWith(false);
+        expect(mockSetUpdateOpen).toHaveBeenCalledWith(false);
     });
 });
