@@ -10,7 +10,7 @@ import {
     clearDB
 } from "./setup.js";
 
-// Create real JWT cookie
+// create real cookie
 const createAuthCookie = async (role = "user") => {
     const user = await User.create({
         name: "Test User",
@@ -43,19 +43,22 @@ afterAll(async () => {
 
 
 /* -------------------------------------------------------------
-   PUBLIC ROUTES
+   GET ALL (PAGINATION)
 -------------------------------------------------------------- */
 
-// GET ALL
 describe("GET /api/v1/sweet/", () => {
 
     it("returns empty list when no sweets exist", async () => {
-        const res = await request(app).get("/api/v1/sweet/");
+        const res = await request(app).get("/api/v1/sweet?page=1");
+
         expect(res.status).toBe(200);
         expect(res.body.sweets).toEqual([]);
+        expect(res.body.currentPage).toBe(1);
+        expect(res.body.totalPages).toBe(0);
+        expect(res.body.totalItems).toBe(0);
     });
 
-    it("returns all sweets", async () => {
+    it("returns paginated sweets", async () => {
         await Sweet.create({
             name: "Jalebi",
             category: "Indian",
@@ -66,21 +69,35 @@ describe("GET /api/v1/sweet/", () => {
             description: "Sweet and crispy"
         });
 
-        const res = await request(app).get("/api/v1/sweet/");
+        const res = await request(app).get("/api/v1/sweet?page=1");
+
         expect(res.status).toBe(200);
         expect(res.body.sweets.length).toBe(1);
+        expect(res.body.currentPage).toBe(1);
+        expect(res.body.totalPages).toBe(1);
+        expect(res.body.totalItems).toBe(1);
     });
 
     it("returns 500 when DB throws error", async () => {
-        jest.spyOn(Sweet, "find").mockRejectedValue(new Error("DB error"));
-        const res = await request(app).get("/api/v1/sweet/");
+
+        jest.spyOn(Sweet, "find").mockReturnValue({
+            skip: () => ({
+                limit: () => Promise.reject(new Error("DB error"))
+            })
+        });
+
+        jest.spyOn(Sweet, "countDocuments").mockRejectedValue(new Error("DB error"));
+
+        const res = await request(app).get("/api/v1/sweet?page=1");
         expect(res.status).toBe(500);
     });
-
 });
 
 
-// SEARCH
+/* -------------------------------------------------------------
+   SEARCH
+-------------------------------------------------------------- */
+
 describe("GET /api/v1/sweet/search", () => {
 
     it("filters by name", async () => {
@@ -141,7 +158,7 @@ describe("GET /api/v1/sweet/search", () => {
 
 
 /* -------------------------------------------------------------
-   GET SWEET BY ID
+   GET BY ID
 -------------------------------------------------------------- */
 
 describe("GET /api/v1/sweet/:id", () => {
@@ -154,7 +171,7 @@ describe("GET /api/v1/sweet/:id", () => {
             quantity: 25,
             image: "img.jpg",
             rating: 4.8,
-            description: "Premium sweet"
+            description: "Premium"
         });
 
         const res = await request(app).get(`/api/v1/sweet/${sweet._id}`);
@@ -162,7 +179,7 @@ describe("GET /api/v1/sweet/:id", () => {
         expect(res.body.sweet.name).toBe("Kaju Katli");
     });
 
-    it("returns 404 if sweet not found", async () => {
+    it("returns 404 if not found", async () => {
         const res = await request(app).get("/api/v1/sweet/507f191e810c19729de860ea");
         expect(res.status).toBe(404);
     });
@@ -172,19 +189,16 @@ describe("GET /api/v1/sweet/:id", () => {
         const res = await request(app).get("/api/v1/sweet/123");
         expect(res.status).toBe(500);
     });
-
 });
 
 
-
 /* -------------------------------------------------------------
-   ADMIN PROTECTED ROUTES
+   ADD (ADMIN ONLY)
 -------------------------------------------------------------- */
 
-// ADD
 describe("POST /api/v1/sweet/ (Admin only)", () => {
 
-    it("blocks unauthenticated user", async () => {
+    it("blocks unauthenticated", async () => {
         const res = await request(app)
             .post("/api/v1/sweet/")
             .send({
@@ -215,7 +229,7 @@ describe("POST /api/v1/sweet/ (Admin only)", () => {
         expect(res.status).toBe(403);
     });
 
-    it("allows admin to create sweet", async () => {
+    it("allows admin to create", async () => {
         const cookie = await createAuthCookie("admin");
 
         const res = await request(app)
@@ -235,7 +249,7 @@ describe("POST /api/v1/sweet/ (Admin only)", () => {
         expect(res.body.sweet.name).toBe("Ladoo");
     });
 
-    it("requires all mandatory fields", async () => {
+    it("requires all fields", async () => {
         const cookie = await createAuthCookie("admin");
 
         const res = await request(app)
@@ -268,11 +282,13 @@ describe("POST /api/v1/sweet/ (Admin only)", () => {
 });
 
 
+/* -------------------------------------------------------------
+   UPDATE (ADMIN ONLY)
+-------------------------------------------------------------- */
 
-// UPDATE
 describe("PUT /api/v1/sweet/:id (Admin only)", () => {
 
-    it("blocks non-admin user", async () => {
+    it("blocks non-admin", async () => {
         const cookie = await createAuthCookie("user");
 
         const res = await request(app)
@@ -283,7 +299,7 @@ describe("PUT /api/v1/sweet/:id (Admin only)", () => {
         expect(res.status).toBe(403);
     });
 
-    it("returns 404 when sweet not found", async () => {
+    it("returns 404 when not found", async () => {
         const cookie = await createAuthCookie("admin");
 
         const res = await request(app)
@@ -294,7 +310,7 @@ describe("PUT /api/v1/sweet/:id (Admin only)", () => {
         expect(res.status).toBe(404);
     });
 
-    it("updates sweet when admin", async () => {
+    it("updates sweet", async () => {
         const sweet = await Sweet.create({
             name: "Peda",
             category: "Indian",
@@ -302,7 +318,7 @@ describe("PUT /api/v1/sweet/:id (Admin only)", () => {
             quantity: 3,
             image: "img.jpg",
             rating: 4,
-            description: "Soft Peda"
+            description: "Soft"
         });
 
         const cookie = await createAuthCookie("admin");
@@ -333,11 +349,13 @@ describe("PUT /api/v1/sweet/:id (Admin only)", () => {
 });
 
 
+/* -------------------------------------------------------------
+   DELETE (ADMIN ONLY)
+-------------------------------------------------------------- */
 
-// DELETE
 describe("DELETE /api/v1/sweet/:id (Admin only)", () => {
 
-    it("blocks non-admin user", async () => {
+    it("blocks non-admin", async () => {
         const cookie = await createAuthCookie("user");
 
         const res = await request(app)
@@ -347,7 +365,7 @@ describe("DELETE /api/v1/sweet/:id (Admin only)", () => {
         expect(res.status).toBe(403);
     });
 
-    it("returns 404 when deleting non-existing sweet", async () => {
+    it("returns 404 when not found", async () => {
         const cookie = await createAuthCookie("admin");
 
         const res = await request(app)
@@ -357,7 +375,7 @@ describe("DELETE /api/v1/sweet/:id (Admin only)", () => {
         expect(res.status).toBe(404);
     });
 
-    it("deletes sweet when admin", async () => {
+    it("deletes sweet", async () => {
         const sweet = await Sweet.create({
             name: "Halwa",
             category: "Indian",
@@ -365,7 +383,7 @@ describe("DELETE /api/v1/sweet/:id (Admin only)", () => {
             quantity: 5,
             image: "img.jpg",
             rating: 4,
-            description: "Best Halwa"
+            description: "Best"
         });
 
         const cookie = await createAuthCookie("admin");

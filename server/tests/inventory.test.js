@@ -42,14 +42,14 @@ afterAll(async () => {
 
 
 /* -------------------------------------------------------------
-   PURCHASE SWEET (USER)
+   PURCHASE SWEET
 -------------------------------------------------------------- */
 
 describe("POST /api/v1/inventory/:id/purchase", () => {
 
     it("blocks unauthenticated user", async () => {
         const sweet = await Sweet.create({
-            name: "Ladoo", category: "Indian", price: 5, quantity: 10
+            name: "Ladoo", category: "Indian", price: 5, quantity: 10, image: "img.jpg"
         });
 
         const res = await request(app)
@@ -63,7 +63,7 @@ describe("POST /api/v1/inventory/:id/purchase", () => {
         const cookie = await createAuthCookie("user");
 
         const sweet = await Sweet.create({
-            name: "Barfi", category: "Classic", price: 10, quantity: 20
+            name: "Barfi", category: "Classic", price: 10, quantity: 20, image: "img.jpg"
         });
 
         const res = await request(app)
@@ -85,11 +85,11 @@ describe("POST /api/v1/inventory/:id/purchase", () => {
         expect(res.status).toBe(404);
     });
 
-    it("fails purchase if insufficient stock", async () => {
+    it("fails purchase due to insufficient stock", async () => {
         const cookie = await createAuthCookie("user");
 
         const sweet = await Sweet.create({
-            name: "Halwa", category: "Indian", price: 15, quantity: 3
+            name: "Halwa", category: "Indian", price: 15, quantity: 3, image: "img.jpg"
         });
 
         const res = await request(app)
@@ -100,11 +100,11 @@ describe("POST /api/v1/inventory/:id/purchase", () => {
         expect(res.status).toBe(400);
     });
 
-    it("reduces stock on successful purchase", async () => {
+    it("reduces stock on success", async () => {
         const cookie = await createAuthCookie("user");
 
         const sweet = await Sweet.create({
-            name: "Peda", category: "Indian", price: 10, quantity: 10
+            name: "Peda", category: "Indian", price: 10, quantity: 10, image: "img.jpg"
         });
 
         const res = await request(app)
@@ -140,7 +140,7 @@ describe("POST /api/v1/inventory/:id/restock", () => {
 
     it("blocks unauthenticated user", async () => {
         const sweet = await Sweet.create({
-            name: "Gulab Jamun", category: "Indian", price: 10, quantity: 5
+            name: "Gulab Jamun", category: "Indian", price: 10, quantity: 5, image: "img.jpg"
         });
 
         const res = await request(app)
@@ -154,7 +154,7 @@ describe("POST /api/v1/inventory/:id/restock", () => {
         const cookie = await createAuthCookie("user");
 
         const sweet = await Sweet.create({
-            name: "Rasgulla", category: "Indian", price: 10, quantity: 10
+            name: "Rasgulla", category: "Indian", price: 10, quantity: 10, image: "img.jpg"
         });
 
         const res = await request(app)
@@ -169,7 +169,7 @@ describe("POST /api/v1/inventory/:id/restock", () => {
         const cookie = await createAuthCookie("admin");
 
         const sweet = await Sweet.create({
-            name: "Kaju Katli", category: "Classic", price: 20, quantity: 10
+            name: "Kaju Katli", category: "Classic", price: 20, quantity: 10, image: "img.jpg"
         });
 
         const res = await request(app)
@@ -191,11 +191,11 @@ describe("POST /api/v1/inventory/:id/restock", () => {
         expect(res.status).toBe(404);
     });
 
-    it("increases stock on successful restock", async () => {
+    it("increases stock on success", async () => {
         const cookie = await createAuthCookie("admin");
 
         const sweet = await Sweet.create({
-            name: "Cham Cham", category: "Bengali", price: 12, quantity: 8
+            name: "Cham Cham", category: "Bengali", price: 12, quantity: 8, image: "img.jpg"
         });
 
         const res = await request(app)
