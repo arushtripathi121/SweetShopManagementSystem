@@ -1,16 +1,13 @@
-import './App.css'
-import { UserProvider } from './context/UserContext.jsx'
-import HomePage from './pages/HomePage'
+import "./App.css";
+import HomePage from "./pages/HomePage";
+import { AppProviders } from "./context/AppProviders";
 
 function App() {
-
   return (
-    <>
-      <UserProvider>
-        <HomePage />
-      </UserProvider>
-    </>
-  )
+    <AppProviders>
+      <HomePage />
+    </AppProviders>
+  );
 }
 
-export default App
+export default App;
