@@ -1,7 +1,7 @@
 import { createContext, useContext, useState } from "react";
 
 const BuySweetContext = createContext(null);
-
+export { BuySweetContext };
 export const BuySweetProvider = ({ children }) => {
     const [buyOpen, setBuyOpen] = useState(false);
     const [selectedSweetId, setSelectedSweetId] = useState(null);

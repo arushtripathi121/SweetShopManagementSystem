@@ -4,10 +4,13 @@ import { IoClose } from "react-icons/io5";
 import { FaStar } from "react-icons/fa";
 import { FaMinus, FaPlus } from "react-icons/fa6";
 import { api } from "../hooks/api";
-import { useUser } from "../context/UserContext";
+
+import { useBuySweet } from "../context/BuySweetContext";
+import { useAuth } from "../context/AuthContext";
 
 const BuySweets = () => {
-  const { buyOpen, setBuyOpen, selectedSweetId, user, setAuthOpen } = useUser();
+  const { buyOpen, setBuyOpen, selectedSweetId } = useBuySweet();
+  const { user, setAuthOpen } = useAuth();
 
   const [sweet, setSweet] = useState(null);
   const [loading, setLoading] = useState(false);
