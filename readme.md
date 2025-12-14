@@ -2,6 +2,10 @@
 
 A MERN-stack single-page application designed to manage and maintain sweet shop inventory efficiently. It allows users to browse and purchase sweets, while admins can fully manage stock operations including adding, updating, deleting, and restocking sweets. The UI is smooth and responsive, featuring real-time stock updates and cookie-based authentication. The admin dashboard becomes visible only when an admin is logged in.
 
+## Live Link
+
+**URL:** <https://sweetshopar.vercel.app>
+
 ## Technology Used
 
 - MongoDB
@@ -94,10 +98,6 @@ A MERN-stack single-page application designed to manage and maintain sweet shop 
 
 - **POST** `/inventory/:id/purchase` – Purchase sweet & update stock  
 - **POST** `/inventory/:id/restocking` – Restock sweet  
-
-## Live Link
-
-**URL:** <https://sweetshopar.vercel.app>
 
 ## Admin Credentials
 
