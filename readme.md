@@ -66,7 +66,7 @@ A MERN-stack single-page application designed to manage and maintain sweet shop 
 
 - **POST** `/user/signup` – Register user  
 - **POST** `/user/login` – Login user/admin  
-- **GET** `/user/me` – Verify authentication and authorization  
+- **GET** `/user/me` – Verify authentication and authorization  (Protected)
 
 ### Sweet APIs (Public)
 
@@ -80,7 +80,7 @@ A MERN-stack single-page application designed to manage and maintain sweet shop 
 - **PUT** `/sweet/` – Update sweet  
 - **DELETE** `/sweet/` – Delete sweet  
 
-### Inventory APIs
+### Inventory APIs (Protected)
 
 - **POST** `/inventory/:id/purchase` – Purchase sweet & update stock  
 - **POST** `/inventory/:id/restocking` – Restock sweet  
