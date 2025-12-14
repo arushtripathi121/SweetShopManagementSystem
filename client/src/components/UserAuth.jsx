@@ -5,24 +5,14 @@ import { api } from "../hooks/api";
 import { useAuth } from "../context/AuthContext";
 
 const UserAuth = () => {
-    const { authOpen, setAuthOpen, user, setUser, isAdmin, setIsAdmin } = useAuth();
+    const { authOpen, setAuthOpen, user, setUser, setIsAdmin } = useAuth();
 
     const [tab, setTab] = useState("login");
+    const [form, setForm] = useState({ name: "", email: "", password: "", confirmPassword: "" });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
-    const [form, setForm] = useState({
-        name: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-    });
-
-    const updateField = (field, value) =>
-        setForm((prev) => ({ ...prev, [field]: value }));
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const passwordRegex = /^(?=.*\d).{6,}$/;
+    const update = (field, value) => setForm((p) => ({ ...p, [field]: value }));
 
     const fetchUser = async () => {
         const res = await api.get("/auth/me");
@@ -30,22 +20,19 @@ const UserAuth = () => {
         setIsAdmin(res.data.user.role === "admin");
     };
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const pwdRegex = /^(?=.*\d).{6,}$/;
+
     const handleLogin = async (e) => {
         e.preventDefault();
         setError("");
 
-        if (!emailRegex.test(form.email)) return setError("Invalid email format.");
-        if (!passwordRegex.test(form.password))
-            return setError("Password must be 6+ chars & include a number");
+        if (!emailRegex.test(form.email)) return setError("Invalid email.");
+        if (!pwdRegex.test(form.password)) return setError("Weak password.");
 
         try {
             setLoading(true);
-
-            await api.post("/auth/login", {
-                email: form.email,
-                password: form.password,
-            });
-
+            await api.post("/auth/login", { email: form.email, password: form.password });
             await fetchUser();
             setAuthOpen(false);
         } catch {
@@ -61,23 +48,20 @@ const UserAuth = () => {
 
         if (!form.name.trim()) return setError("Name is required.");
         if (!emailRegex.test(form.email)) return setError("Invalid email.");
-        if (!passwordRegex.test(form.password)) return setError("Weak password.");
-        if (form.password !== form.confirmPassword)
-            return setError("Passwords do not match.");
+        if (!pwdRegex.test(form.password)) return setError("Weak password.");
+        if (form.password !== form.confirmPassword) return setError("Passwords do not match.");
 
         try {
             setLoading(true);
-
             await api.post("/auth/signup", {
                 name: form.name,
                 email: form.email,
                 password: form.password,
             });
-
             await fetchUser();
             setAuthOpen(false);
         } catch {
-            setError("Email already registered.");
+            setError("Email is already registered.");
         } finally {
             setLoading(false);
         }
@@ -95,82 +79,79 @@ const UserAuth = () => {
         <AnimatePresence>
             {authOpen && (
                 <motion.div
-                    key="overlay"
-                    data-testid="overlay"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.45 }}
-                    className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50"
+                    className="fixed inset-0 bg-black/60 backdrop-blur-[4px] flex items-center justify-center z-[100]"
                     onClick={() => setAuthOpen(false)}
                 >
+                    {/* MODAL */}
                     <motion.div
-                        key="modal"
-                        initial={{ opacity: 0, y: 50, scale: 0.95 }}
+                        initial={{ opacity: 0, y: 60, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 30, scale: 0.92 }}
-                        transition={{ duration: 0.45 }}
-                        className="bg-white rounded-2xl p-8 w-100 max-w-[90%] min-h-[60vh] max-h-[85vh] overflow-y-auto shadow-2xl relative"
+                        exit={{ opacity: 0, y: 40, scale: 0.95 }}
+                        transition={{ duration: 0.35 }}
+                        className="bg-white rounded-3xl w-[95%] max-w-lg shadow-2xl p-8 relative overflow-hidden"
                         onClick={(e) => e.stopPropagation()}
                     >
+                        {/* CLOSE BUTTON */}
                         <button
                             onClick={() => setAuthOpen(false)}
-                            className="absolute top-3 right-3 text-2xl text-gray-500 hover:text-black transition"
+                            className="absolute top-4 right-4 text-gray-500 text-3xl hover:text-black"
                         >
                             <IoClose />
                         </button>
 
+                        {/* -------- LOGGED IN VIEW -------- */}
                         {user ? (
                             <motion.div
-                                initial={{ opacity: 0, y: 15 }}
+                                initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.35 }}
-                                className="flex flex-col items-center text-center gap-4 mt-8"
+                                className="flex flex-col items-center text-center py-10"
                             >
-                                <div
-                                    data-testid="user-initial"
-                                    className="w-24 h-24 bg-gray-300 rounded-full flex items-center justify-center text-4xl font-bold"
-                                >
+                                {/* Circular Avatar */}
+                                <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-4xl font-semibold text-black">
                                     {user.name[0]}
                                 </div>
 
-                                <h2 className="text-2xl font-semibold">{user.name}</h2>
+                                <h2 className="text-2xl font-bold mt-4">{user.name}</h2>
                                 <p className="text-gray-600">{user.email}</p>
 
-                                <p className="px-4 py-1 rounded-full bg-black text-white text-sm">
+                                <span className="mt-3 px-4 py-1 rounded-full bg-black text-white text-sm">
                                     {user.role.toUpperCase()}
-                                </p>
+                                </span>
 
+                                {/* Logout */}
                                 <motion.button
-                                    data-testid="logout-btn"
                                     whileTap={{ scale: 0.95 }}
                                     onClick={handleLogout}
-                                    className="mt-6 bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-900 transition"
+                                    className="mt-8 bg-black text-white px-8 py-3 rounded-xl text-lg hover:bg-gray-900 transition"
                                 >
                                     Logout
                                 </motion.button>
                             </motion.div>
                         ) : (
                             <>
-                                <h2 className="text-2xl font-semibold mb-6 text-center">
-                                    {tab === "login" ? "Welcome Back" : "Create Account"}
+                                {/* HEADING */}
+                                <h2 className="text-3xl font-bold text-center mb-6 mt-2">
+                                    {tab === "login" ? "Welcome Back" : "Create an Account"}
                                 </h2>
 
-                                <div className="flex mb-6 border-b">
+                                {/* TABS */}
+                                <div className="flex mb-8 bg-gray-100 rounded-xl overflow-hidden">
                                     <button
-                                        className={`w-1/2 py-2 text-lg font-medium transition ${tab === "login"
-                                                ? "text-black border-b-2 border-black"
-                                                : "text-gray-500"
+                                        className={`w-1/2 py-3 text-lg font-medium transition ${tab === "login"
+                                                ? "bg-black text-white"
+                                                : "text-gray-600"
                                             }`}
                                         onClick={() => setTab("login")}
                                     >
                                         Login
                                     </button>
-
                                     <button
-                                        className={`w-1/2 py-2 text-lg font-medium transition ${tab === "signup"
-                                                ? "text-black border-b-2 border-black"
-                                                : "text-gray-500"
+                                        className={`w-1/2 py-3 text-lg font-medium transition ${tab === "signup"
+                                                ? "bg-black text-white"
+                                                : "text-gray-600"
                                             }`}
                                         onClick={() => setTab("signup")}
                                     >
@@ -178,84 +159,81 @@ const UserAuth = () => {
                                     </button>
                                 </div>
 
+                                {/* ERROR */}
                                 {error && (
-                                    <p className="text-red-500 text-sm mb-3 text-center">
+                                    <p className="text-red-500 text-sm text-center mb-4">
                                         {error}
                                     </p>
                                 )}
 
+                                {/* -------- LOGIN FORM -------- */}
                                 {tab === "login" && (
                                     <form className="flex flex-col gap-4" onSubmit={handleLogin}>
                                         <input
                                             type="email"
                                             placeholder="Email"
+                                            className="border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-black"
                                             value={form.email}
-                                            onChange={(e) => updateField("email", e.target.value)}
-                                            className="border p-3 rounded-lg"
+                                            onChange={(e) => update("email", e.target.value)}
                                         />
 
                                         <input
                                             type="password"
                                             placeholder="Password"
+                                            className="border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-black"
                                             value={form.password}
-                                            onChange={(e) => updateField("password", e.target.value)}
-                                            className="border p-3 rounded-lg"
+                                            onChange={(e) => update("password", e.target.value)}
                                         />
 
                                         <motion.button
-                                            data-testid="login-btn"
-                                            whileTap={{ scale: 0.97 }}
+                                            whileTap={{ scale: 0.98 }}
+                                            className="bg-black text-white py-3 rounded-xl mt-2 text-lg hover:bg-gray-900 transition"
                                             disabled={loading}
-                                            type="submit"
-                                            className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-900 disabled:bg-gray-700"
                                         >
                                             {loading ? "Processing..." : "Login"}
                                         </motion.button>
                                     </form>
                                 )}
 
+                                {/* -------- SIGNUP FORM -------- */}
                                 {tab === "signup" && (
                                     <form className="flex flex-col gap-4" onSubmit={handleSignup}>
                                         <input
                                             type="text"
                                             placeholder="Full Name"
+                                            className="border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-black"
                                             value={form.name}
-                                            onChange={(e) => updateField("name", e.target.value)}
-                                            className="border p-3 rounded-lg"
+                                            onChange={(e) => update("name", e.target.value)}
                                         />
 
                                         <input
                                             type="email"
                                             placeholder="Email"
+                                            className="border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-black"
                                             value={form.email}
-                                            onChange={(e) => updateField("email", e.target.value)}
-                                            className="border p-3 rounded-lg"
+                                            onChange={(e) => update("email", e.target.value)}
                                         />
 
                                         <input
                                             type="password"
                                             placeholder="Password"
+                                            className="border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-black"
                                             value={form.password}
-                                            onChange={(e) => updateField("password", e.target.value)}
-                                            className="border p-3 rounded-lg"
+                                            onChange={(e) => update("password", e.target.value)}
                                         />
 
                                         <input
                                             type="password"
                                             placeholder="Confirm Password"
+                                            className="border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-black"
                                             value={form.confirmPassword}
-                                            onChange={(e) =>
-                                                updateField("confirmPassword", e.target.value)
-                                            }
-                                            className="border p-3 rounded-lg"
+                                            onChange={(e) => update("confirmPassword", e.target.value)}
                                         />
 
                                         <motion.button
-                                            data-testid="signup-btn"
-                                            whileTap={{ scale: 0.97 }}
+                                            whileTap={{ scale: 0.98 }}
+                                            className="bg-black text-white py-3 rounded-xl mt-2 text-lg hover:bg-gray-900 transition"
                                             disabled={loading}
-                                            type="submit"
-                                            className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-900 disabled:bg-gray-700"
                                         >
                                             {loading ? "Processing..." : "Sign Up"}
                                         </motion.button>

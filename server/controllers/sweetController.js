@@ -47,6 +47,7 @@ export const getAllSweets = async (req, res) => {
 
         const sweets = await Sweet.find().skip(skip).limit(limit);
         const total = await Sweet.countDocuments();
+        
 
         return sendSuccess(res, 200, {
             sweets,

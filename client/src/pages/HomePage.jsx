@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 
 import Header from "../components/Header";
 
-// Lazy load heavy components
+// Lazy-loaded sections to reduce initial bundle size
 const UserAuth = lazy(() => import("../components/UserAuth"));
 const About = lazy(() => import("../components/About"));
 const Sweets = lazy(() => import("../components/Sweets"));
@@ -16,22 +16,21 @@ const AdminDashboard = lazy(() => import("../components/AdminDashboard"));
 
 const fadeIn = {
     hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { duration: 0.35 } }
+    visible: { opacity: 1, transition: { duration: 0.3 } },
 };
 
 const HomePage = () => {
     const { setUser, setIsAdmin } = useAuth();
     const { adminDashboardOpen } = useAdmin();
 
+    // Fetch logged-in user on initial load
     const fetchUser = useCallback(async () => {
         try {
-            const response = await api.get("/auth/me");
-            const user = response.data.user;
-
-            setUser(user);
-            setIsAdmin(user?.role === "admin");
+            const { data } = await api.get("/auth/me");
+            setUser(data.user);
+            setIsAdmin(data.user?.role === "admin");
         } catch {
-            // user not logged in
+            // Not logged in — ignore silently
         }
     }, [setUser, setIsAdmin]);
 
@@ -43,37 +42,25 @@ const HomePage = () => {
         <div>
             <Header />
 
-            {/* Lazy-loaded modals */}
-            <Suspense fallback={<></>}>
+            {/* Modals that may open on demand */}
+            <Suspense fallback={null}>
                 <UserAuth />
                 <BuySweets />
             </Suspense>
 
-            {/* MAIN CONTENT */}
+            {/* Main content */}
             <Suspense
-                fallback={
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="w-full h-[200px]"
-                    />
-                }
+                fallback={<div className="w-full h-32 animate-pulse bg-gray-100" />}
             >
-                <motion.div
-                    initial="hidden"
-                    animate="visible"
-                    variants={fadeIn}
-                >
+                <motion.div initial="hidden" animate="visible" variants={fadeIn}>
                     {adminDashboardOpen ? (
                         <AdminDashboard />
                     ) : (
-                        <div className="w-full flex justify-center">
-                            <div className="w-full">
-                                <About />
-                                <Sweets />
-                                <Footer />
-                            </div>
-                        </div>
+                        <>
+                            <About />
+                            <Sweets />
+                            <Footer />
+                        </>
                     )}
                 </motion.div>
             </Suspense>
