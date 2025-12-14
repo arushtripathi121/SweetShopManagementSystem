@@ -40,9 +40,13 @@
         |-- pages
             |-- HomePage.jsx
     |-- tests
+        |-- AddSweet.test.jsx
         |-- AdminDashboard.test.jsx
+        |-- BuySweets.test.jsx
+        |-- RestockSweet.test.jsx
         |-- setup.js
         |-- test-utils.js
+        |-- UpdateSweet.test.jsx
         |-- UserAuth.test.jsx
     |-- vite.config.js
 |-- server

@@ -1,5 +1,6 @@
 import React, { useEffect, Suspense, lazy, useCallback } from "react";
-import { useUser } from "../context/UserContext";
+import { useAuth } from "../context/AuthContext";
+import { useAdmin } from "../context/AdminContext";
 import { api } from "../hooks/api";
 import { motion } from "framer-motion";
 
@@ -19,14 +20,19 @@ const fadeIn = {
 };
 
 const HomePage = () => {
-    const { setUser, setIsAdmin, adminDashboardOpen } = useUser();
+    const { setUser, setIsAdmin } = useAuth();
+    const { adminDashboardOpen } = useAdmin();
 
     const fetchUser = useCallback(async () => {
         try {
             const response = await api.get("/auth/me");
-            setUser(response.data.user);
-            setIsAdmin(response.data.user.role === "admin");
-        } catch { }
+            const user = response.data.user;
+
+            setUser(user);
+            setIsAdmin(user?.role === "admin");
+        } catch {
+            // user not logged in
+        }
     }, [setUser, setIsAdmin]);
 
     useEffect(() => {
@@ -37,13 +43,13 @@ const HomePage = () => {
         <div>
             <Header />
 
-            {/* Lazy modals (open instantly, no animation needed) */}
+            {/* Lazy-loaded modals */}
             <Suspense fallback={<></>}>
                 <UserAuth />
                 <BuySweets />
             </Suspense>
 
-            {/* MAIN CONTENT with smooth fade animation */}
+            {/* MAIN CONTENT */}
             <Suspense
                 fallback={
                     <motion.div
