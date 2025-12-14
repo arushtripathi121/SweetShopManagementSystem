@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { useUser } from "../context/UserContext";
 import { IoClose } from "react-icons/io5";
 import { motion, AnimatePresence } from "framer-motion";
 import { api } from "../hooks/api";
+import { useAuth } from "../context/AuthContext";
 
 const UserAuth = () => {
-    const { authOpen, setAuthOpen, user, setUser, setIsAdmin } = useUser();
+    const { authOpen, setAuthOpen, user, setUser, isAdmin, setIsAdmin } = useAuth();
+
     const [tab, setTab] = useState("login");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -39,6 +40,7 @@ const UserAuth = () => {
 
         try {
             setLoading(true);
+
             await api.post("/auth/login", {
                 email: form.email,
                 password: form.password,
@@ -65,6 +67,7 @@ const UserAuth = () => {
 
         try {
             setLoading(true);
+
             await api.post("/auth/signup", {
                 name: form.name,
                 email: form.email,
@@ -93,10 +96,11 @@ const UserAuth = () => {
             {authOpen && (
                 <motion.div
                     key="overlay"
+                    data-testid="overlay"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.45, ease: "easeInOut" }}
+                    transition={{ duration: 0.45 }}
                     className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50"
                     onClick={() => setAuthOpen(false)}
                 >
@@ -105,10 +109,7 @@ const UserAuth = () => {
                         initial={{ opacity: 0, y: 50, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 30, scale: 0.92 }}
-                        transition={{
-                            duration: 0.45,
-                            ease: [0.16, 1, 0.3, 1],
-                        }}
+                        transition={{ duration: 0.45 }}
                         className="bg-white rounded-2xl p-8 w-100 max-w-[90%] min-h-[60vh] max-h-[85vh] overflow-y-auto shadow-2xl relative"
                         onClick={(e) => e.stopPropagation()}
                     >
@@ -119,7 +120,6 @@ const UserAuth = () => {
                             <IoClose />
                         </button>
 
-                        {/* 🟦 USER DETAILS IF LOGGED IN */}
                         {user ? (
                             <motion.div
                                 initial={{ opacity: 0, y: 15 }}
@@ -127,7 +127,10 @@ const UserAuth = () => {
                                 transition={{ duration: 0.35 }}
                                 className="flex flex-col items-center text-center gap-4 mt-8"
                             >
-                                <div className="w-24 h-24 bg-gray-300 rounded-full flex items-center justify-center text-4xl font-bold">
+                                <div
+                                    data-testid="user-initial"
+                                    className="w-24 h-24 bg-gray-300 rounded-full flex items-center justify-center text-4xl font-bold"
+                                >
                                     {user.name[0]}
                                 </div>
 
@@ -139,6 +142,7 @@ const UserAuth = () => {
                                 </p>
 
                                 <motion.button
+                                    data-testid="logout-btn"
                                     whileTap={{ scale: 0.95 }}
                                     onClick={handleLogout}
                                     className="mt-6 bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-900 transition"
@@ -155,8 +159,8 @@ const UserAuth = () => {
                                 <div className="flex mb-6 border-b">
                                     <button
                                         className={`w-1/2 py-2 text-lg font-medium transition ${tab === "login"
-                                            ? "text-black border-b-2 border-black"
-                                            : "text-gray-500"
+                                                ? "text-black border-b-2 border-black"
+                                                : "text-gray-500"
                                             }`}
                                         onClick={() => setTab("login")}
                                     >
@@ -165,8 +169,8 @@ const UserAuth = () => {
 
                                     <button
                                         className={`w-1/2 py-2 text-lg font-medium transition ${tab === "signup"
-                                            ? "text-black border-b-2 border-black"
-                                            : "text-gray-500"
+                                                ? "text-black border-b-2 border-black"
+                                                : "text-gray-500"
                                             }`}
                                         onClick={() => setTab("signup")}
                                     >
@@ -175,10 +179,11 @@ const UserAuth = () => {
                                 </div>
 
                                 {error && (
-                                    <p className="text-red-500 text-sm mb-3 text-center">{error}</p>
+                                    <p className="text-red-500 text-sm mb-3 text-center">
+                                        {error}
+                                    </p>
                                 )}
 
-                                {/* LOGIN */}
                                 {tab === "login" && (
                                     <form className="flex flex-col gap-4" onSubmit={handleLogin}>
                                         <input
@@ -186,7 +191,7 @@ const UserAuth = () => {
                                             placeholder="Email"
                                             value={form.email}
                                             onChange={(e) => updateField("email", e.target.value)}
-                                            className="border p-3 rounded-lg outline-none transition-all duration-300 focus:ring focus:ring-gray-300"
+                                            className="border p-3 rounded-lg"
                                         />
 
                                         <input
@@ -194,22 +199,21 @@ const UserAuth = () => {
                                             placeholder="Password"
                                             value={form.password}
                                             onChange={(e) => updateField("password", e.target.value)}
-                                            className="border p-3 rounded-lg outline-none transition-all duration-300 focus:ring focus:ring-gray-300"
+                                            className="border p-3 rounded-lg"
                                         />
 
                                         <motion.button
+                                            data-testid="login-btn"
                                             whileTap={{ scale: 0.97 }}
-                                            transition={{ duration: 0.15 }}
-                                            type="submit"
                                             disabled={loading}
-                                            className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-900 transition disabled:bg-gray-700"
+                                            type="submit"
+                                            className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-900 disabled:bg-gray-700"
                                         >
                                             {loading ? "Processing..." : "Login"}
                                         </motion.button>
                                     </form>
                                 )}
 
-                                {/* SIGNUP */}
                                 {tab === "signup" && (
                                     <form className="flex flex-col gap-4" onSubmit={handleSignup}>
                                         <input
@@ -217,7 +221,7 @@ const UserAuth = () => {
                                             placeholder="Full Name"
                                             value={form.name}
                                             onChange={(e) => updateField("name", e.target.value)}
-                                            className="border p-3 rounded-lg outline-none transition-all duration-300 focus:ring focus:ring-gray-300"
+                                            className="border p-3 rounded-lg"
                                         />
 
                                         <input
@@ -225,7 +229,7 @@ const UserAuth = () => {
                                             placeholder="Email"
                                             value={form.email}
                                             onChange={(e) => updateField("email", e.target.value)}
-                                            className="border p-3 rounded-lg outline-none transition-all duration-300 focus:ring focus:ring-gray-300"
+                                            className="border p-3 rounded-lg"
                                         />
 
                                         <input
@@ -233,7 +237,7 @@ const UserAuth = () => {
                                             placeholder="Password"
                                             value={form.password}
                                             onChange={(e) => updateField("password", e.target.value)}
-                                            className="border p-3 rounded-lg outline-none transition-all duration-300 focus:ring focus:ring-gray-300"
+                                            className="border p-3 rounded-lg"
                                         />
 
                                         <input
@@ -243,15 +247,15 @@ const UserAuth = () => {
                                             onChange={(e) =>
                                                 updateField("confirmPassword", e.target.value)
                                             }
-                                            className="border p-3 rounded-lg outline-none transition-all duration-300 focus:ring focus:ring-gray-300"
+                                            className="border p-3 rounded-lg"
                                         />
 
                                         <motion.button
+                                            data-testid="signup-btn"
                                             whileTap={{ scale: 0.97 }}
-                                            transition={{ duration: 0.15 }}
-                                            type="submit"
                                             disabled={loading}
-                                            className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-900 transition disabled:bg-gray-700"
+                                            type="submit"
+                                            className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-900 disabled:bg-gray-700"
                                         >
                                             {loading ? "Processing..." : "Sign Up"}
                                         </motion.button>
