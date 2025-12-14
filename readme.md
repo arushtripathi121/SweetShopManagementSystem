@@ -17,12 +17,12 @@ A MERN-stack single-page application designed to manage and maintain sweet shop 
 ## Test Result File
 
 ##### Client
-![alt text](<Screenshot 2025-12-14 164253.png>)
+![alt text](<images/Screenshot 2025-12-14 164253.png>)
 
 ##### Server
-![alt text](image-8.png)
-![alt text](image-9.png)'
-![alt text](image-10.png)
+![alt text](images/image-8.png)
+![alt text](images/image-9.png)'
+![alt text](images/image-10.png)
 
 ## Features
 
@@ -52,14 +52,14 @@ A MERN-stack single-page application designed to manage and maintain sweet shop 
 - Cookie-based JWT authentication for secure sessions.
 ### Application Screenshots
 #### Admin Login Screenshots
-![alt text](image-7.png)
-![alt text](image-1.png)
-![alt text](image-2.png)
+![alt text](images/image-7.png)
+![alt text](images/image-1.png)
+![alt text](images/image-2.png)
 #### Login page
-![alt text](image-3.png)
+![alt text](images/image-3.png)
 #### User Login Screenshots
-![alt text](image-6.png)
-![alt text](image-5.png)
+![alt text](images/image-6.png)
+![alt text](images/image-5.png)
 ## API Endpoints
 
 ### User APIs
