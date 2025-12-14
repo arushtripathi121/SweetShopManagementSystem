@@ -69,7 +69,6 @@ const Header = () => {
 
                 {/* Icons on Right */}
                 <div className="flex items-center gap-4 text-2xl text-gray-700 md:hidden">
-                    <CiSearch className="hover:text-black cursor-pointer" />
 
                     {/* Mobile Menu Toggle */}
                     {menuOpen ? (
