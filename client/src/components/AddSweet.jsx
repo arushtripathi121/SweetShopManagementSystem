@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { IoClose } from "react-icons/io5";
 import { api } from "../hooks/api";
-import { useUser } from "../context/UserContext";
+import { useAdmin } from "../context/AdminContext";
 
-const AddSweet = () => {
-    const { addOpen, setAddOpen, setSweets } = useUser();
+const AddSweet = ({ refresh }) => {
+    const { addOpen, setAddOpen } = useAdmin();
 
     const [fields, setFields] = useState({
         name: "",
@@ -24,10 +24,10 @@ const AddSweet = () => {
 
     const handleSubmit = async () => {
         try {
-            const res = await api.post("/sweet/", fields);
-            setSweets((prev) => [...prev, res.data.sweet]); // append new sweet
-            setAddOpen(false);
-        } catch {
+            await api.post("/sweet/", fields);
+            refresh();             // 🔥 fetch updated list
+            setAddOpen(false);     // close modal
+        } catch (err) {
             alert("Failed to add sweet");
         }
     };
@@ -44,6 +44,7 @@ const AddSweet = () => {
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-bold">Add Sweet</h2>
                     <IoClose
+                        data-testid="close-btn"
                         className="text-3xl cursor-pointer"
                         onClick={() => setAddOpen(false)}
                     />
